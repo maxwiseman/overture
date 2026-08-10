@@ -1,0 +1,3 @@
+{
+  "extends": "@overture/config/tsconfig.base.json"
+}

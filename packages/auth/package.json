@@ -1,0 +1,24 @@
+{
+  "name": "@overture/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@overture/db": "workspace:*",
+    "@overture/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@overture/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
