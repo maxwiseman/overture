@@ -283,6 +283,9 @@ private struct ProfileSettingsSheet: View {
                 Section {
                     Button("Manage subscription") {}
                     Button("Privacy") {}
+                    NavigationLink("Legal & Attributions") {
+                        ModelAttributionsView()
+                    }
                 }
             }
             .navigationTitle("Profile")
@@ -301,6 +304,61 @@ private struct ProfileSettingsSheet: View {
             .tint(OvertureTheme.cobalt)
         }
     }
+}
+
+private struct ModelAttributionsView: View {
+    private static let creativeCommonsURL = URL(string: "https://creativecommons.org/licenses/by/4.0/")!
+
+    private let credits = [
+        ModelCredit(
+            name: "Falcon 9 Block 5",
+            creator: "AllThingsSpace",
+            sourceURL: URL(string: "https://sketchfab.com/3d-models/spacex-falcon-9-block-5-61067a8b341c4b4b96053d5fa607f232")!
+        ),
+        ModelCredit(
+            name: "Falcon Heavy",
+            creator: "SunnyChen753 / SW fan",
+            sourceURL: URL(string: "https://sketchfab.com/3d-models/spacex-falcon-heavy-2f11453207944cedba00e2c6c1aa1269")!
+        ),
+        ModelCredit(
+            name: "Starship Block 3",
+            creator: "Clarence365",
+            sourceURL: URL(string: "https://sketchfab.com/3d-models/spacex-starship-block-3-6f6c6f88a3eb4b4d822fdca66733fbb2")!
+        ),
+    ]
+
+    var body: some View {
+        Form {
+            Section {
+                Text("Rocket models are used under Creative Commons Attribution 4.0. Overture has adjusted model scale, materials, and textures for in-app presentation.")
+                    .foregroundStyle(.secondary)
+            }
+
+            ForEach(credits) { credit in
+                Section(credit.name) {
+                    LabeledContent("Creator", value: credit.creator)
+
+                    Link(destination: credit.sourceURL) {
+                        Label("View source model", systemImage: "arrow.up.right.square")
+                    }
+
+                    Link(destination: Self.creativeCommonsURL) {
+                        Label("CC BY 4.0 license", systemImage: "doc.text")
+                    }
+                }
+            }
+        }
+        .navigationTitle("Attributions")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct ModelCredit: Identifiable {
+    let name: String
+    let creator: String
+    let sourceURL: URL
+
+    var id: String { name }
 }
 
 private struct EditionMenu: View {

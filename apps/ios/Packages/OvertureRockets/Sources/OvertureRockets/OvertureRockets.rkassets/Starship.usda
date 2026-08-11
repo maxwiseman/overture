@@ -1,0 +1,365 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "Reality Composer Pro Version 2.0 (494.100.6)"
+    }
+    defaultPrim = "Root"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "Root"
+{
+    def "SpaceX_Starship_Block_3" (
+        active = true
+        prepend references = @SpaceX_Starship_Block_3.usdz@
+    )
+    {
+        float2 ui:nodegraph:node:pos = (20, 20)
+        int ui:nodegraph:node:stackingOrder = 1
+        float3 xformOp:scale = (0.01, 0.01, 0.01)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "Materials"
+        {
+            over "Material_055"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:metallic = 0.5
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_055/tex_metallic.outputs:r>
+                    float inputs:roughness = 0.4
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_055/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material_053"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Heatshield_Tiles"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Material_056"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_056/tex_metallic.outputs:r>
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_056/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Logo"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:metallic = 1
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Logo/tex_metallic.outputs:r>
+                    float inputs:roughness = 0.3
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Logo/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Cryo_Section1"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:metallic = 1
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Cryo_Section1/tex_metallic.outputs:r>
+                    float inputs:roughness = 0.3
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Cryo_Section1/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material/tex_metallic.outputs:r>
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material_001"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_001/tex_metallic.outputs:r>
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_001/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material_206"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Material_463"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:metallic = 1
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_463/tex_metallic.outputs:r>
+                    float inputs:roughness = 0.3
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_463/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material_462"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_462/tex_metallic.outputs:r>
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_462/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material_204"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:metallic = 0.8
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_204/tex_metallic.outputs:r>
+                    float inputs:roughness = 0.5
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_204/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material_033"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Material_202"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:metallic = 0.8
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_202/tex_metallic.outputs:r>
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_202/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material_498"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:metallic = 0.8
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_498/tex_metallic.outputs:r>
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_498/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material_499"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_499/tex_metallic.outputs:r>
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_499/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material_504"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_504/tex_metallic.outputs:r>
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_504/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material_506"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_506/tex_metallic.outputs:r>
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_506/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material_511"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:metallic = 0.8
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_511/tex_metallic.outputs:r>
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_511/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material_497"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:metallic = 0.8
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_497/tex_metallic.outputs:r>
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_497/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Booster_Heatshield"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:metallic = 0.7
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Booster_Heatshield/tex_metallic.outputs:r>
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Booster_Heatshield/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Material_005"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_005/tex_metallic.outputs:r>
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Material_005/tex_roughness.outputs:r>
+                }
+            }
+
+            over "Serial_Number"
+            {
+                token cullMode = "none" (
+                    allowedTokens = ["unspecified", "none", "front", "back"]
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:metallic = 1
+                    delete float inputs:metallic.connect = </Root/SpaceX_Starship_Block_3/Materials/Serial_Number/tex_metallic.outputs:r>
+                    float inputs:roughness = 0.3
+                    delete float inputs:roughness.connect = </Root/SpaceX_Starship_Block_3/Materials/Serial_Number/tex_roughness.outputs:r>
+                }
+            }
+        }
+    }
+}
+

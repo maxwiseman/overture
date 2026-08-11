@@ -3,28 +3,21 @@ import SwiftUI
 import UIKit
 import WebKit
 
-struct UpcomingView: View {
+struct LaunchesView: View {
     @State private var launchState: LaunchLoadState = .loading
+    @State private var isFetching = false
     @Namespace private var launchNamespace
 
     var body: some View {
-        GeometryReader { proxy in
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 18) {
-                    Text("Rocket launches and other moments worth watching.")
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                        .padding(.bottom, 8)
-
-                    content
-                }
-                .frame(width: max(0, proxy.size.width - 40), alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 28)
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 28) {
+                content
             }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 32)
         }
         .background(Color(.systemBackground))
-        .navigationTitle("Upcoming")
+        .navigationTitle("Launches")
         .task {
             await loadLaunches()
         }
@@ -40,195 +33,424 @@ struct UpcomingView: View {
     private var content: some View {
         switch launchState {
         case .loading:
-            ProgressView()
-                .frame(maxWidth: .infinity)
-                .padding(.top, 40)
+            launchList(RocketLaunch.placeholderLaunches)
+                .redacted(reason: .placeholder)
+                .allowsHitTesting(false)
         case .loaded(let launches):
-            ForEach(launches) { launch in
-                NavigationLink(value: launch) {
-                    RocketLaunchCard(launch: launch)
-                        .matchedTransitionSource(id: launch.id, in: launchNamespace)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.plain)
-            }
-        case .failed:
-            Text("Using placeholder launch data until the live schedule is available.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+            launchList(launches)
+        case .failed(let message):
+            VStack(alignment: .leading, spacing: 10) {
+                Label(message, systemImage: "wifi.slash")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
 
-            ForEach(RocketLaunch.placeholderLaunches) { launch in
-                NavigationLink(value: launch) {
-                    RocketLaunchCard(launch: launch)
-                        .frame(maxWidth: .infinity)
+                Button {
+                    Task {
+                        await loadLaunches(forceRefresh: true)
+                    }
+                } label: {
+                    if isFetching {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Label("Try Again", systemImage: "arrow.clockwise")
+                    }
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.bordered)
+                .disabled(isFetching)
+            }
+
+            launchList(RocketLaunch.placeholderLaunches)
+        }
+    }
+
+    private func launchList(_ launches: [RocketLaunch]) -> some View {
+        let supportedLaunches = launches.filter {
+            RocketModelView.supports(vehicle: $0.vehicle)
+        }
+
+        return Group {
+            if let nextLaunch = supportedLaunches.first {
+                VStack(alignment: .leading, spacing: 12) {
+                    LaunchSectionHeader(title: "Next launch")
+
+                    NavigationLink(value: nextLaunch) {
+                        LaunchCard(launch: nextLaunch, isNext: true)
+                            .matchedTransitionSource(id: nextLaunch.id, in: launchNamespace)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            if supportedLaunches.count > 1 {
+                VStack(alignment: .leading, spacing: 12) {
+                    LaunchSectionHeader(title: "Coming up", count: supportedLaunches.count - 1)
+
+                    LazyVStack(spacing: 16) {
+                        ForEach(supportedLaunches.dropFirst()) { launch in
+                            NavigationLink(value: launch) {
+                                LaunchCard(launch: launch)
+                                    .matchedTransitionSource(id: launch.id, in: launchNamespace)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
             }
         }
     }
 
     private func loadLaunches(forceRefresh: Bool = false) async {
+        guard !isFetching else { return }
+
         if case .loaded = launchState, !forceRefresh {
             return
         }
 
-        if forceRefresh {
-            launchState = .loading
-        }
+        isFetching = true
+        defer { isFetching = false }
 
         do {
             let launches = try await LaunchLibraryClient().upcomingLaunches(forceRefresh: forceRefresh)
-            launchState = .loaded(launches.isEmpty ? RocketLaunch.placeholderLaunches : launches)
+            guard !Task.isCancelled else { return }
+            launchState = .loaded(launches)
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
         } catch {
             if case .loaded = launchState {
                 return
             } else {
-                launchState = .failed
+                launchState = .failed(Self.failureMessage(for: error))
             }
         }
+    }
+
+    private static func failureMessage(for error: Error) -> String {
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .notConnectedToInternet, .networkConnectionLost, .dataNotAllowed:
+                return "You're offline. Reconnect, then pull to refresh or try again."
+            case .timedOut, .cannotConnectToHost, .cannotFindHost:
+                return "The launch service couldn't be reached. Pull to refresh or try again."
+            default:
+                break
+            }
+        }
+
+        return error.localizedDescription
     }
 }
 
 private enum LaunchLoadState {
     case loading
     case loaded([RocketLaunch])
-    case failed
+    case failed(String)
 }
 
-private struct RocketLaunchCard: View {
-    let launch: RocketLaunch
+private struct LaunchSectionHeader: View {
+    let title: String
+    var count: Int?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            LaunchImage(url: launch.imageURL)
-                .frame(height: 210)
-                .overlay(alignment: .topLeading) {
-                    Text(launch.status)
-                        .font(.caption.weight(.bold))
-                        .padding(.horizontal, 10)
-                        .frame(height: 30)
-                        .background(.ultraThinMaterial, in: Capsule())
-                        .padding(12)
-                }
+        HStack {
+            Text(title)
+                .font(.headline)
 
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(alignment: .top, spacing: 14) {
-                    launchBadge
+            Spacer()
 
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(launch.mission)
-                            .font(OvertureTheme.editorial(28, weight: .semibold))
-                            .lineSpacing(1)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        Text(launch.vehicle)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(OvertureTheme.cobalt)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Spacer(minLength: 8)
-                }
-
-                Text(launch.summary)
-                    .font(.body)
+            if let count {
+                Text(count, format: .number)
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
-                    .lineSpacing(4)
-                    .lineLimit(3)
-
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 14) {
-                        metadataLabel(launch.launchWindow, systemImage: "clock")
-                        metadataLabel(launch.site, systemImage: "mappin.and.ellipse")
-                    }
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        metadataLabel(launch.launchWindow, systemImage: "clock")
-                        metadataLabel(launch.site, systemImage: "mappin.and.ellipse")
-                    }
-                }
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 5)
+                    .background(Color(.tertiarySystemFill), in: Capsule())
             }
-            .padding(18)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(Color(.secondarySystemBackground), in: .rect(cornerRadius: 18))
-        .clipShape(.rect(cornerRadius: 18))
-        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
     }
+}
 
-    private func metadataLabel(_ text: String, systemImage: String) -> some View {
-        Label(text, systemImage: systemImage)
-            .lineLimit(1)
-            .truncationMode(.tail)
+private struct LaunchCard: View {
+    let launch: RocketLaunch
+    var isNext = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        ZStack(alignment: .bottomTrailing) {
+            Color(.secondarySystemBackground)
+
+            if !dynamicTypeSize.isAccessibilitySize {
+                RocketCardModelView(vehicle: launch.vehicle)
+                    .frame(width: 150, height: 320)
+                    .padding(.trailing, -8)
+                    .padding(.bottom, -6)
+                    .allowsHitTesting(false)
+            }
+
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(launch.statusColor)
+                        .frame(width: 7, height: 7)
+
+                    Text(launch.status.uppercased())
+                        .font(.caption2.weight(.bold))
+                        .tracking(0.8)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .background(.ultraThinMaterial, in: Capsule())
+
+                Spacer(minLength: 34)
+
+                Text(launch.date.formatted(.dateTime.weekday(.wide).month(.wide).day()))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+
+                Text(launch.mission)
+                    .font(OvertureTheme.editorial(34, weight: .semibold))
+                    .tracking(-0.8)
+                    .lineSpacing(-1)
+                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 6)
+
+                Text("\(launch.provider)  ·  \(launch.vehicle)")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .padding(.top, 8)
+
+                Spacer(minLength: 22)
+
+                LaunchCountdown(date: launch.date)
+            }
+            .foregroundStyle(.primary)
+            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : 238, alignment: .leading)
+            .padding(20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: dynamicTypeSize.isAccessibilitySize ? 440 : 390)
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(isNext ? "Next launch" : "Upcoming launch"), \(launch.mission), \(launch.launchWindow), \(launch.site)")
+    }
+}
+
+private struct LaunchCountdown: View {
+    let date: Date
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            HStack(spacing: 8) {
+                Image(systemName: "clock")
+                    .font(.caption.weight(.semibold))
+
+                Text(countdown(from: context.date))
+                    .font(.subheadline.weight(.semibold))
+                    .monospacedDigit()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .background(.black.opacity(0.46), in: Capsule())
+            .foregroundStyle(.white)
+            .accessibilityLabel("Time until launch")
+            .accessibilityValue(countdown(from: context.date))
+        }
     }
 
-    private var launchBadge: some View {
-        VStack(spacing: 2) {
-            Text(launch.month)
-                .font(.caption2.weight(.bold))
-                .foregroundStyle(.secondary)
-            Text(launch.day)
-                .font(.title3.weight(.bold))
+    private func countdown(from now: Date) -> String {
+        let remaining = max(0, Int(date.timeIntervalSince(now)))
+        let days = remaining / 86_400
+        let hours = (remaining % 86_400) / 3_600
+        let minutes = (remaining % 3_600) / 60
+        let seconds = remaining % 60
+
+        if remaining == 0 {
+            return "Launching now"
         }
-        .frame(width: 54, height: 58)
-        .background(Color(.tertiarySystemBackground), in: .rect(cornerRadius: 14))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(.separator)
-        )
+
+        if days > 0 {
+            return String(format: "T−%dd %02d:%02d:%02d", days, hours, minutes, seconds)
+        }
+
+        return String(format: "T−%02d:%02d:%02d", hours, minutes, seconds)
     }
 }
 
 private struct RocketLaunchDetailView: View {
     let launch: RocketLaunch
     let namespace: Namespace.ID
+    @Environment(\.dismiss) private var dismiss
+    @State private var presentedSheet: LaunchDetailSheetDestination? = .details
+    @State private var selectedDetent: PresentationDetent = .height(265)
+
+    private var isInspectingModel: Bool {
+        selectedDetent == .height(80)
+    }
 
     var body: some View {
-        GeometryReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    LaunchImage(url: launch.imageURL)
-                        .frame(width: proxy.size.width, height: 330)
-                        .matchedTransitionSource(id: launch.id, in: namespace)
+        ZStack {
+            Color(.systemBackground)
+                .ignoresSafeArea()
 
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text(launch.status)
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(OvertureTheme.cobalt)
+            RocketDetailModelView(
+                vehicle: launch.vehicle,
+                isCentered: isInspectingModel
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea()
+            .shadow(color: .black.opacity(0.18), radius: 12)
+            .zIndex(0)
 
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .top, spacing: 14) {
+                    VStack(alignment: .leading, spacing: 14) {
                         Text(launch.mission)
-                            .font(OvertureTheme.editorial(42, weight: .semibold))
-                            .lineSpacing(-1)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .tracking(-0.8)
+                            .lineLimit(3)
 
+                        Text(launch.vehicle.uppercased())
+                            .font(.subheadline.weight(.bold))
+                            .tracking(2.2)
+                            .foregroundStyle(.secondary)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("PROVIDER")
+                                .font(.caption.weight(.semibold))
+                                .tracking(1.4)
+                                .foregroundStyle(.secondary)
+
+                            Text(launch.provider)
+                                .font(.headline)
+                        }
+                    }
+                    .frame(maxWidth: 230, alignment: .leading)
+                    .opacity(isInspectingModel ? 0 : 1)
+                    .accessibilityHidden(isInspectingModel)
+                    .allowsHitTesting(!isInspectingModel)
+
+                    Spacer(minLength: 0)
+
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.body.weight(.semibold))
+                    }
+                    .buttonStyle(.glass)
+                    .buttonBorderShape(.circle)
+                    .controlSize(.large)
+                    .accessibilityLabel("Close launch details")
+                }
+
+                Spacer()
+
+                HStack {
+                    Spacer()
+                    LaunchCountdown(date: launch.date)
+                    Spacer()
+                }
+                .padding(.bottom, 286)
+                .opacity(isInspectingModel ? 0 : 1)
+                .accessibilityHidden(isInspectingModel)
+                .allowsHitTesting(!isInspectingModel)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 10)
+            .animation(.snappy(duration: 0.35), value: isInspectingModel)
+            .zIndex(1)
+        }
+        .foregroundStyle(.primary)
+        .tint(.primary)
+        .toolbar(.hidden, for: .navigationBar)
+        .toolbar(.hidden, for: .tabBar)
+        .navigationTransition(.zoom(sourceID: launch.id, in: namespace))
+        .sheet(item: $presentedSheet) { _ in
+            LaunchDetailSheet(
+                launch: launch,
+                isCompact: isInspectingModel
+            )
+                .presentationDetents(
+                    [.height(80), .height(265), .large],
+                    selection: $selectedDetent
+                )
+                .presentationDragIndicator(.visible)
+                .presentationBackgroundInteraction(.enabled(upThrough: .height(265)))
+                .interactiveDismissDisabled()
+        }
+    }
+}
+
+private enum LaunchDetailSheetDestination: String, Identifiable {
+    case details
+
+    var id: String { rawValue }
+}
+
+private struct LaunchDetailSheet: View {
+    let launch: RocketLaunch
+    let isCompact: Bool
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(launch.statusColor)
+                            .frame(width: 7, height: 7)
+
+                        Text(launch.status.uppercased())
+                            .font(.caption.weight(.bold))
+                            .tracking(1)
+                    }
+
+                    Text(launch.launchWindow)
+                        .font(.title2.weight(.bold))
+
+                    if !isCompact {
                         Text(launch.summary)
                             .font(.body)
                             .foregroundStyle(.secondary)
                             .lineSpacing(5)
                             .fixedSize(horizontal: false, vertical: true)
-
-                        LaunchDetailGrid(launch: launch)
-
-                        LaunchSiteMap(launch: launch)
-
-                        LivestreamSection(videoURL: launch.videoURL)
+                            .textSelection(.enabled)
                     }
-                    .frame(width: max(0, proxy.size.width - 40), alignment: .leading)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 36)
                 }
-                .frame(width: proxy.size.width, alignment: .leading)
+
+                if !isCompact {
+                    LaunchDetailGrid(launch: launch)
+
+                    LaunchSiteMap(launch: launch)
+
+                    if launch.imageURL != nil {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Mission image")
+                                .font(.headline)
+
+                            LaunchImage(url: launch.imageURL)
+                                .frame(height: 230)
+                                .frame(maxWidth: .infinity)
+                                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        }
+                    }
+
+                    LivestreamSection(videoURL: launch.videoURL)
+                }
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 44)
         }
-        .background(Color(.systemBackground))
-        .navigationTitle(launch.shortTitle)
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationTransition(.zoom(sourceID: launch.id, in: namespace))
+        .scrollIndicators(.hidden)
+        .tint(.primary)
     }
 }
 
@@ -248,7 +470,7 @@ private struct LaunchDetailGrid: View {
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemBackground), in: .rect(cornerRadius: 18))
+        .background(Color(.tertiarySystemBackground), in: .rect(cornerRadius: 18))
     }
 
     private func detail(_ label: String, _ value: String) -> some View {
@@ -303,13 +525,15 @@ private struct LivestreamSection: View {
             Text("Livestream")
                 .font(.headline)
 
-            if let embedURL {
-                GeometryReader { proxy in
-                    WebView(url: embedURL)
-                        .frame(width: proxy.size.width, height: 220)
-                        .clipShape(.rect(cornerRadius: 18))
+            if let videoID = youtubeVideoID, let videoURL {
+                YouTubePlayerView(videoID: videoID)
+                    .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+
+                Link(destination: videoURL) {
+                    Label("Open in YouTube", systemImage: "arrow.up.right.square")
+                        .font(.subheadline.weight(.semibold))
                 }
-                .frame(height: 220)
             } else if let videoURL {
                 Link(destination: videoURL) {
                     Label("Open livestream", systemImage: "play.rectangle")
@@ -328,13 +552,31 @@ private struct LivestreamSection: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var embedURL: URL? {
-        guard let videoURL, videoURL.host()?.contains("youtube.com") == true else { return nil }
-        guard let components = URLComponents(url: videoURL, resolvingAgainstBaseURL: false),
-              let videoID = components.queryItems?.first(where: { $0.name == "v" })?.value else {
-            return nil
+    private var youtubeVideoID: String? {
+        guard let videoURL, let host = videoURL.host()?.lowercased() else { return nil }
+
+        let candidate: String?
+        if host == "youtu.be" || host.hasSuffix(".youtu.be") {
+            candidate = videoURL.pathComponents.dropFirst().first
+        } else if host.contains("youtube.com") || host.contains("youtube-nocookie.com") {
+            let components = URLComponents(url: videoURL, resolvingAgainstBaseURL: false)
+            let pathComponents = videoURL.pathComponents.filter { $0 != "/" }
+
+            if let queryVideoID = components?.queryItems?.first(where: { $0.name == "v" })?.value {
+                candidate = queryVideoID
+            } else if pathComponents.first.map({ ["embed", "live", "shorts"].contains($0) }) == true {
+                candidate = pathComponents.dropFirst().first
+            } else {
+                candidate = nil
+            }
+        } else {
+            candidate = nil
         }
-        return URL(string: "https://www.youtube.com/embed/\(videoID)")
+
+        guard let candidate, candidate.count == 11 else { return nil }
+        let allowedCharacters = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
+        guard candidate.unicodeScalars.allSatisfy(allowedCharacters.contains) else { return nil }
+        return candidate
     }
 }
 
@@ -344,21 +586,24 @@ private struct LaunchImage: View {
     @State private var didFail = false
 
     var body: some View {
-        ZStack {
-            if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                fallback
+        GeometryReader { proxy in
+            ZStack {
+                if let image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: proxy.size.width, height: proxy.size.height)
+                } else {
+                    fallback
 
-                if url != nil, !didFail {
-                    ProgressView()
+                    if url != nil, !didFail {
+                        ProgressView()
+                    }
                 }
             }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+            .clipped()
         }
-        .frame(maxWidth: .infinity)
-        .clipped()
         .task(id: url) {
             await loadImage()
         }
@@ -366,18 +611,11 @@ private struct LaunchImage: View {
 
     private var fallback: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    OvertureTheme.cobalt.opacity(0.75),
-                    Color(.secondarySystemBackground),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            Color(.tertiarySystemBackground)
 
-            Image(systemName: "sparkles")
+            Image(systemName: "photo")
                 .font(.system(size: 34, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.78))
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -395,19 +633,59 @@ private struct LaunchImage: View {
     }
 }
 
-private struct WebView: UIViewRepresentable {
-    let url: URL
+private struct YouTubePlayerView: UIViewRepresentable {
+    let videoID: String
+
+    private static let clientOrigin = URL(string: "https://overture.news/")!
 
     func makeUIView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
         configuration.allowsInlineMediaPlayback = true
+        configuration.defaultWebpagePreferences.allowsContentJavaScript = true
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.scrollView.isScrollEnabled = false
+        webView.scrollView.bounces = false
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
         return webView
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
-        webView.load(URLRequest(url: url))
+        guard context.coordinator.loadedVideoID != videoID else { return }
+        context.coordinator.loadedVideoID = videoID
+        webView.loadHTMLString(html, baseURL: Self.clientOrigin)
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    private var html: String {
+        """
+        <!doctype html>
+        <html>
+          <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+            <meta name="referrer" content="strict-origin-when-cross-origin">
+            <style>
+              html, body, iframe { width: 100%; height: 100%; margin: 0; padding: 0; border: 0; background: #000; overflow: hidden; }
+            </style>
+          </head>
+          <body>
+            <iframe
+              src="https://www.youtube.com/embed/\(videoID)?playsinline=1&rel=0&origin=https%3A%2F%2Foverture.news"
+              title="YouTube livestream"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+              referrerpolicy="strict-origin-when-cross-origin">
+            </iframe>
+          </body>
+        </html>
+        """
+    }
+
+    final class Coordinator {
+        var loadedVideoID: String?
     }
 }
 
@@ -417,6 +695,7 @@ private struct RocketLaunch: Identifiable, Hashable {
     let shortTitle: String
     let vehicle: String
     let provider: String
+    let date: Date
     let launchWindow: String
     let site: String
     let month: String
@@ -434,14 +713,38 @@ private struct RocketLaunch: Identifiable, Hashable {
         return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
 
-    static let placeholderLaunches = [
+    var isTerminal: Bool {
+        let normalizedStatus = status.lowercased()
+        return normalizedStatus.contains("failure")
+            || normalizedStatus.contains("success")
+            || normalizedStatus.contains("cancel")
+    }
+
+    var statusColor: Color {
+        let normalizedStatus = status.lowercased()
+        if normalizedStatus.contains("go") || normalizedStatus.contains("confirmed") {
+            return .green
+        }
+        if normalizedStatus.contains("hold") || normalizedStatus.contains("tbd") {
+            return .orange
+        }
+        return .white.opacity(0.72)
+    }
+
+    static var placeholderLaunches: [RocketLaunch] {
+        let calendar = Calendar.current
+        let firstDate = calendar.date(byAdding: .hour, value: 26, to: .now) ?? .now
+        let secondDate = calendar.date(byAdding: .day, value: 5, to: .now) ?? .now
+
+        return [
         RocketLaunch(
             id: "artemis-cargo-demo",
             mission: "Artemis Cargo Demo",
             shortTitle: "Artemis Cargo",
             vehicle: "SLS Block 1B",
             provider: "NASA",
-            launchWindow: "Tue, 8:34 PM",
+            date: firstDate,
+            launchWindow: Self.windowFormatter.string(from: firstDate),
             site: "Kennedy LC-39B",
             month: "SEP",
             day: "03",
@@ -459,7 +762,8 @@ private struct RocketLaunch: Identifiable, Hashable {
             shortTitle: "Starship",
             vehicle: "Starship Super Heavy",
             provider: "SpaceX",
-            launchWindow: "Fri, 7:10 AM",
+            date: secondDate,
+            launchWindow: Self.windowFormatter.string(from: secondDate),
             site: "Starbase",
             month: "SEP",
             day: "12",
@@ -471,10 +775,19 @@ private struct RocketLaunch: Identifiable, Hashable {
             latitude: 25.9971,
             longitude: -97.1568
         ),
-    ]
+        ]
+    }
 }
 
 private struct LaunchLibraryClient {
+    private static let session: URLSession = {
+        let configuration = URLSessionConfiguration.default
+        configuration.waitsForConnectivity = true
+        configuration.timeoutIntervalForRequest = 20
+        configuration.timeoutIntervalForResource = 30
+        return URLSession(configuration: configuration)
+    }()
+
     func upcomingLaunches(forceRefresh: Bool = false) async throws -> [RocketLaunch] {
         if !forceRefresh, let cachedLaunches = await LaunchLibraryCache.shared.cachedLaunches {
             return cachedLaunches
@@ -487,18 +800,53 @@ private struct LaunchLibraryClient {
             URLQueryItem(name: "format", value: "json"),
         ]
 
-        let (data, response) = try await URLSession.shared.data(from: components.url!)
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200..<300).contains(httpResponse.statusCode) else {
+        guard let url = components.url else {
+            throw URLError(.badURL)
+        }
+
+        let cachePolicy: URLRequest.CachePolicy = forceRefresh
+            ? .reloadIgnoringLocalCacheData
+            : .returnCacheDataElseLoad
+        var request = URLRequest(url: url, cachePolicy: cachePolicy, timeoutInterval: 20)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await Self.session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
             throw URLError(.badServerResponse)
+        }
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            throw LaunchLibraryError.httpStatus(httpResponse.statusCode)
         }
 
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         let payload = try decoder.decode(LaunchLibraryResponse.self, from: data)
-        let launches = payload.results.map(RocketLaunch.init(response:))
+        let now = Date()
+        let launches = payload.results
+            .map(RocketLaunch.init(response:))
+            .filter { $0.date > now && !$0.isTerminal }
+            .sorted { $0.date < $1.date }
+        guard !launches.isEmpty else {
+            throw LaunchLibraryError.emptySchedule
+        }
         await LaunchLibraryCache.shared.store(launches)
         return launches
+    }
+}
+
+private enum LaunchLibraryError: LocalizedError {
+    case httpStatus(Int)
+    case emptySchedule
+
+    var errorDescription: String? {
+        switch self {
+        case .httpStatus(429):
+            "The launch service is receiving too many requests. Please try again shortly."
+        case .httpStatus:
+            "The launch service returned an error. Pull to refresh or try again."
+        case .emptySchedule:
+            "No current launches were returned. Pull to refresh or try again."
+        }
     }
 }
 
@@ -673,6 +1021,7 @@ private extension RocketLaunch {
             shortTitle: missionName.components(separatedBy: "|").last?.trimmingCharacters(in: .whitespacesAndNewlines) ?? missionName,
             vehicle: response.rocket?.configuration?.fullName ?? response.rocket?.configuration?.name ?? "Rocket",
             provider: response.launchServiceProvider?.name ?? "Launch provider",
+            date: launchDate,
             launchWindow: Self.windowFormatter.string(from: launchDate),
             site: [response.pad?.name, response.pad?.location?.name]
                 .compactMap { $0 }
@@ -715,5 +1064,5 @@ private extension RocketLaunch {
 }
 
 #Preview {
-    NavigationStack { UpcomingView() }
+    NavigationStack { LaunchesView() }
 }

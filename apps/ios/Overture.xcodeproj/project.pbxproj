@@ -21,6 +21,9 @@
 		A0000000000000000000010C /* Features/Alerts/AlertsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000020C /* Features/Alerts/AlertsView.swift */; };
 		A0000000000000000000010D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000020D /* Assets.xcassets */; };
 		A0000000000000000000010E /* OvertureIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000020F /* OvertureIcon.icon */; };
+		A0000000000000000000010F /* Components/RocketArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000210 /* Components/RocketArtwork.swift */; };
+		A00000000000000000000110 /* Components/RocketModelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000211 /* Components/RocketModelView.swift */; };
+		A00000000000000000000111 /* OvertureRockets in Frameworks */ = {isa = PBXBuildFile; productRef = A00000000000000000000D01 /* OvertureRockets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +42,8 @@
 		A0000000000000000000020D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A0000000000000000000020E /* Overture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Overture.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0000000000000000000020F /* OvertureIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = OvertureIcon.icon; sourceTree = "<group>"; };
+		A00000000000000000000210 /* Components/RocketArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/RocketArtwork.swift; sourceTree = "<group>"; };
+		A00000000000000000000211 /* Components/RocketModelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/RocketModelView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,6 +51,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A00000000000000000000111 /* OvertureRockets in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +77,8 @@
 				A00000000000000000000205 /* OvertureTheme.swift */,
 				A00000000000000000000206 /* Components/Haptics.swift */,
 				A00000000000000000000207 /* Components/WaveformCard.swift */,
+				A00000000000000000000210 /* Components/RocketArtwork.swift */,
+				A00000000000000000000211 /* Components/RocketModelView.swift */,
 				A00000000000000000000208 /* Features/Home/HomeView.swift */,
 				A00000000000000000000209 /* Features/Article/ArticleView.swift */,
 				A0000000000000000000020A /* Features/Explore/ExploreView.swift */,
@@ -105,6 +113,9 @@
 			dependencies = (
 			);
 			name = Overture;
+			packageProductDependencies = (
+				A00000000000000000000D01 /* OvertureRockets */,
+			);
 			productName = Overture;
 			productReference = A0000000000000000000020E /* Overture.app */;
 			productType = "com.apple.product-type.application";
@@ -133,6 +144,9 @@
 				Base,
 			);
 			mainGroup = A00000000000000000000401;
+			packageReferences = (
+				A00000000000000000000C01 /* XCLocalSwiftPackageReference "Packages/OvertureRockets" */,
+			);
 			productRefGroup = A00000000000000000000403 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -171,6 +185,8 @@
 				A0000000000000000000010A /* Features/Explore/ExploreView.swift in Sources */,
 				A0000000000000000000010B /* Features/Saved/SavedView.swift in Sources */,
 				A0000000000000000000010C /* Features/Alerts/AlertsView.swift in Sources */,
+				A0000000000000000000010F /* Components/RocketArtwork.swift in Sources */,
+				A00000000000000000000110 /* Components/RocketModelView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -223,7 +239,7 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.overture.news.swiftui;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -251,7 +267,7 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.overture.news.swiftui;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -285,6 +301,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A00000000000000000000C01 /* XCLocalSwiftPackageReference "Packages/OvertureRockets" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/OvertureRockets;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A00000000000000000000D01 /* OvertureRockets */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A00000000000000000000C01 /* XCLocalSwiftPackageReference "Packages/OvertureRockets" */;
+			productName = OvertureRockets;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A00000000000000000000801 /* Project object */;
 }

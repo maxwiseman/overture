@@ -1,0 +1,120 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "Reality Composer Pro Version 2.0 (494.100.6)"
+    }
+    defaultPrim = "Root"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "Root"
+{
+    def "SpaceX_Falcon_9_Block_5" (
+        prepend references = @SpaceX_Falcon_9_Block_5.usdz@
+    )
+    {
+        float2 ui:nodegraph:node:pos = (20, 20)
+        int ui:nodegraph:node:stackingOrder = 1
+        float3 xformOp:scale = (0.01, 0.01, 0.01)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "Materials"
+        {
+            over "F9_Second_Stage"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    color3f inputs:diffuseColor = (1, 1, 1)
+                    float inputs:roughness = 0.25
+                }
+            }
+
+            over "F9_First_Stage"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:roughness = 0.25
+                }
+            }
+
+            over "F9_Black"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:roughness = 0.6
+                }
+            }
+
+            over "Landing_Leg_Gray"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:roughness = 0.6
+                }
+            }
+
+            over "Engine_Cloth_Black"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    float inputs:roughness = 1
+                }
+            }
+
+            over "Landing_Leg_White"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    color3f inputs:diffuseColor = (0.88285, 0.88285, 0.88285)
+                    float inputs:roughness = 0.8
+                }
+            }
+
+            over "Merlin_Engine_1"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    color3f inputs:diffuseColor = (0.3236133, 0.3236133, 0.3236133) (
+                        colorSpace = "srgb_displayp3"
+                    )
+                }
+            }
+
+            over "Merlin_Engine_2"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    color3f inputs:diffuseColor = (0.20158203, 0.20158203, 0.20158203) (
+                        colorSpace = "srgb_displayp3"
+                    )
+                }
+            }
+        }
+    }
+}
+

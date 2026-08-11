@@ -4,7 +4,7 @@ enum AppTab: Hashable {
     case home
     case explore
     case saved
-    case upcoming
+    case launches
 }
 
 struct AppView: View {
@@ -18,6 +18,9 @@ struct AppView: View {
         configuredTabView
             .environment(articleReading)
             .preferredColorScheme(activeColorScheme)
+            .task(priority: .utility) {
+                await RocketModelView.prewarmCommonModel()
+            }
     }
 
     @ViewBuilder
@@ -50,9 +53,9 @@ struct AppView: View {
                 }
             }
 
-            Tab("Upcoming", systemImage: "calendar.badge.clock", value: AppTab.upcoming) {
+            Tab("Launches", systemImage: "paperplane", value: AppTab.launches) {
                 NavigationStack {
-                    UpcomingView()
+                    LaunchesView()
                 }
             }
         }
@@ -73,7 +76,7 @@ struct AppView: View {
         switch selectedTab {
         case .home:
             homePath.isEmpty ? .dark : nil
-        case .explore, .saved, .upcoming:
+        case .explore, .saved, .launches:
             nil
         }
     }
