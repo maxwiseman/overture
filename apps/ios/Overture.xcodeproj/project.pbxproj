@@ -1,0 +1,290 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 71;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A00000000000000000000101 /* OvertureApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000201 /* OvertureApp.swift */; };
+		A00000000000000000000102 /* AppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000202 /* AppView.swift */; };
+		A00000000000000000000103 /* Models/Story.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000203 /* Models/Story.swift */; };
+		A00000000000000000000104 /* State/NewsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000204 /* State/NewsStore.swift */; };
+		A00000000000000000000105 /* OvertureTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000205 /* OvertureTheme.swift */; };
+		A00000000000000000000106 /* Components/Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000206 /* Components/Haptics.swift */; };
+		A00000000000000000000107 /* Components/WaveformCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000207 /* Components/WaveformCard.swift */; };
+		A00000000000000000000108 /* Features/Home/HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000208 /* Features/Home/HomeView.swift */; };
+		A00000000000000000000109 /* Features/Article/ArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000209 /* Features/Article/ArticleView.swift */; };
+		A0000000000000000000010A /* Features/Explore/ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000020A /* Features/Explore/ExploreView.swift */; };
+		A0000000000000000000010B /* Features/Saved/SavedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000020B /* Features/Saved/SavedView.swift */; };
+		A0000000000000000000010C /* Features/Alerts/AlertsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000020C /* Features/Alerts/AlertsView.swift */; };
+		A0000000000000000000010D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000020D /* Assets.xcassets */; };
+		A0000000000000000000010E /* OvertureIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000020F /* OvertureIcon.icon */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A00000000000000000000201 /* OvertureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OvertureApp.swift; sourceTree = "<group>"; };
+		A00000000000000000000202 /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
+		A00000000000000000000203 /* Models/Story.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/Story.swift; sourceTree = "<group>"; };
+		A00000000000000000000204 /* State/NewsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = State/NewsStore.swift; sourceTree = "<group>"; };
+		A00000000000000000000205 /* OvertureTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OvertureTheme.swift; sourceTree = "<group>"; };
+		A00000000000000000000206 /* Components/Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/Haptics.swift; sourceTree = "<group>"; };
+		A00000000000000000000207 /* Components/WaveformCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/WaveformCard.swift; sourceTree = "<group>"; };
+		A00000000000000000000208 /* Features/Home/HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/HomeView.swift; sourceTree = "<group>"; };
+		A00000000000000000000209 /* Features/Article/ArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Article/ArticleView.swift; sourceTree = "<group>"; };
+		A0000000000000000000020A /* Features/Explore/ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Explore/ExploreView.swift; sourceTree = "<group>"; };
+		A0000000000000000000020B /* Features/Saved/SavedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Saved/SavedView.swift; sourceTree = "<group>"; };
+		A0000000000000000000020C /* Features/Alerts/AlertsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Alerts/AlertsView.swift; sourceTree = "<group>"; };
+		A0000000000000000000020D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A0000000000000000000020E /* Overture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Overture.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A0000000000000000000020F /* OvertureIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = OvertureIcon.icon; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A00000000000000000000301 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A00000000000000000000401 = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000402 /* Overture */,
+				A0000000000000000000020F /* OvertureIcon.icon */,
+				A00000000000000000000403 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A00000000000000000000402 /* Overture */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000201 /* OvertureApp.swift */,
+				A00000000000000000000202 /* AppView.swift */,
+				A00000000000000000000203 /* Models/Story.swift */,
+				A00000000000000000000204 /* State/NewsStore.swift */,
+				A00000000000000000000205 /* OvertureTheme.swift */,
+				A00000000000000000000206 /* Components/Haptics.swift */,
+				A00000000000000000000207 /* Components/WaveformCard.swift */,
+				A00000000000000000000208 /* Features/Home/HomeView.swift */,
+				A00000000000000000000209 /* Features/Article/ArticleView.swift */,
+				A0000000000000000000020A /* Features/Explore/ExploreView.swift */,
+				A0000000000000000000020B /* Features/Saved/SavedView.swift */,
+				A0000000000000000000020C /* Features/Alerts/AlertsView.swift */,
+				A0000000000000000000020D /* Assets.xcassets */,
+			);
+			path = Overture;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000403 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000020E /* Overture.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A00000000000000000000501 /* Overture */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00000000000000000000902 /* Build configuration list for PBXNativeTarget "Overture" */;
+			buildPhases = (
+				A00000000000000000000601 /* Sources */,
+				A00000000000000000000301 /* Frameworks */,
+				A00000000000000000000701 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Overture;
+			productName = Overture;
+			productReference = A0000000000000000000020E /* Overture.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A00000000000000000000801 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					A00000000000000000000501 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+				};
+			};
+			buildConfigurationList = A00000000000000000000901 /* Build configuration list for PBXProject "Overture" */;
+			compatibilityVersion = "Xcode 16.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A00000000000000000000401;
+			productRefGroup = A00000000000000000000403 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A00000000000000000000501 /* Overture */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A00000000000000000000701 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A0000000000000000000010D /* Assets.xcassets in Resources */,
+				A0000000000000000000010E /* OvertureIcon.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A00000000000000000000601 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00000000000000000000101 /* OvertureApp.swift in Sources */,
+				A00000000000000000000102 /* AppView.swift in Sources */,
+				A00000000000000000000103 /* Models/Story.swift in Sources */,
+				A00000000000000000000104 /* State/NewsStore.swift in Sources */,
+				A00000000000000000000105 /* OvertureTheme.swift in Sources */,
+				A00000000000000000000106 /* Components/Haptics.swift in Sources */,
+				A00000000000000000000107 /* Components/WaveformCard.swift in Sources */,
+				A00000000000000000000108 /* Features/Home/HomeView.swift in Sources */,
+				A00000000000000000000109 /* Features/Article/ArticleView.swift in Sources */,
+				A0000000000000000000010A /* Features/Explore/ExploreView.swift in Sources */,
+				A0000000000000000000010B /* Features/Saved/SavedView.swift in Sources */,
+				A0000000000000000000010C /* Features/Alerts/AlertsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A00000000000000000000A01 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A00000000000000000000A02 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		A00000000000000000000A03 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = OvertureIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4B785Y2WUY;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Overture;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.news";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.overture.news.swiftui;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		A00000000000000000000A04 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = OvertureIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4B785Y2WUY;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Overture;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.news";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.overture.news.swiftui;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A00000000000000000000901 /* Build configuration list for PBXProject "Overture" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000A01 /* Debug */,
+				A00000000000000000000A02 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A00000000000000000000902 /* Build configuration list for PBXNativeTarget "Overture" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000A03 /* Debug */,
+				A00000000000000000000A04 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A00000000000000000000801 /* Project object */;
+}

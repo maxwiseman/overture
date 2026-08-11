@@ -10,6 +10,7 @@ This project was created with [Better-T-Stack](https://github.com/AmanVarshney01
 - **Shared UI package** - shadcn/ui primitives live in `packages/ui`
 - **Drizzle** - TypeScript-first ORM
 - **PostgreSQL** - Database engine
+- **Payload** - Editorial CMS, drafts, media, and content APIs
 - **Authentication** - Better-Auth
 - **Biome** - Linting and formatting
 - **Turborepo** - Optimized monorepo build system
@@ -29,7 +30,10 @@ This project uses PostgreSQL with Drizzle ORM.
 1. Make sure you have a PostgreSQL database set up.
 2. Update your `apps/web/.env` file with your PostgreSQL connection details.
 
-3. Apply the schema to your database:
+3. Copy `apps/cms/.env.example` to `apps/cms/.env`, use the same PostgreSQL
+   connection, and set a strong, unique `PAYLOAD_SECRET`.
+
+4. Apply the application schema to your database:
 
 ```bash
 bun run db:push
@@ -42,6 +46,7 @@ bun run dev
 ```
 
 Open [http://localhost:3001](http://localhost:3001) in your browser to see the fullstack application.
+Payload runs at [http://localhost:3002/admin](http://localhost:3002/admin).
 
 ## UI Customization
 
@@ -78,7 +83,9 @@ If you want to add app-specific blocks instead of shared primitives, run the sha
 ```
 overture/
 ├── apps/
-│   └── web/         # Fullstack application (Next.js)
+│   ├── cms/         # Payload editorial CMS and content API
+│   ├── ios/         # Native SwiftUI application
+│   └── web/         # Public Next.js application
 ├── packages/
 │   ├── ui/          # Shared shadcn/ui components and styles
 │   ├── auth/        # Authentication configuration & logic
@@ -88,8 +95,12 @@ overture/
 ## Available Scripts
 
 - `bun run dev`: Start all applications in development mode
+- `bun run dev:cms`: Start Payload at port 3002
 - `bun run build`: Build all applications
 - `bun run dev:web`: Start only the web application
+- `bun run cms:generate:types`: Regenerate Payload TypeScript types
+- `bun run cms:migrate:create`: Create a Payload database migration
+- `bun run cms:migrate`: Apply Payload database migrations
 - `bun run check-types`: Check TypeScript types across all apps
 - `bun run db:push`: Push schema changes to database
 - `bun run db:generate`: Generate database client/types

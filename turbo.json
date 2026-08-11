@@ -17,6 +17,18 @@
       "cache": false,
       "persistent": true
     },
+    "generate:importmap": {
+      "cache": false
+    },
+    "generate:types": {
+      "cache": false
+    },
+    "payload:migrate": {
+      "cache": false
+    },
+    "payload:migrate:create": {
+      "cache": false
+    },
     "db:push": {
       "cache": false
     },

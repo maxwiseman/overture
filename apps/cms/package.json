@@ -1,0 +1,38 @@
+{
+	"name": "@overture/cms",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" next build",
+		"check-types": "tsc --noEmit",
+		"dev": "cross-env NODE_OPTIONS=--no-deprecation next dev --port 3002",
+		"generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
+		"generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
+		"payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
+		"payload:migrate": "cross-env NODE_OPTIONS=--no-deprecation payload migrate",
+		"payload:migrate:create": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:create",
+		"start": "cross-env NODE_OPTIONS=--no-deprecation next start --port 3002"
+	},
+	"dependencies": {
+		"@payloadcms/db-postgres": "3.87.1",
+		"@payloadcms/next": "3.87.1",
+		"@payloadcms/richtext-lexical": "3.87.1",
+		"@payloadcms/ui": "3.87.1",
+		"cross-env": "^7.0.3",
+		"dotenv": "catalog:",
+		"graphql": "^16.8.1",
+		"next": "^16.3.0",
+		"payload": "3.87.1",
+		"react": "catalog:",
+		"react-dom": "catalog:",
+		"sharp": "0.34.2"
+	},
+	"devDependencies": {
+		"@overture/config": "workspace:*",
+		"@types/node": "^22.20.1",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"typescript": "catalog:"
+	}
+}

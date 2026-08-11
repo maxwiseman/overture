@@ -6,6 +6,7 @@ node_modules
 # Build outputs
 dist
 build
+**/.next/
 *.tsbuildinfo
 
 # Generated files
@@ -26,6 +27,11 @@ apps/web/src/routeTree.gen.ts
 *.swo
 *~
 .DS_Store
+
+# Xcode
+DerivedData/
+xcuserdata/
+*.xcuserstate
 
 # Logs
 logs
