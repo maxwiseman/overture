@@ -3,6 +3,7 @@ import { Search, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { ProgressiveBlur } from "./progressive-blur";
 import UserMenu from "./user-menu";
 
 export default function Header() {
@@ -15,6 +16,8 @@ export default function Header() {
 
   return (
     <header className="site-header">
+      <ProgressiveBlur className="site-header__blur" height="112px" position="top" />
+      <div className="site-header__scrim" aria-hidden="true" />
       <div className="site-header__inner">
         <Link className="wordmark" href="/" aria-label="Overture home">
           Overture
