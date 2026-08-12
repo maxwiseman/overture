@@ -16,8 +16,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "overture",
-  description: "overture",
+  title: {
+    default: "Overture",
+    template: "%s — Overture",
+  },
+  description: "A daily briefing on the ideas opening tomorrow.",
 };
 
 export default function RootLayout({
@@ -26,10 +29,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
-          <div className="grid grid-rows-[auto_1fr] h-svh">
+          <div className="min-h-svh">
             <Header />
             {children}
           </div>

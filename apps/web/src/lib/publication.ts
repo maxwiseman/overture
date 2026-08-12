@@ -26,6 +26,28 @@ export type PublicationEdition = {
   stories: PublicationStory[];
 };
 
+const localStoryImages: Record<string, { landscape: string; portrait: string }> = {
+  "quiet-flight": {
+    landscape: "/images/quiet-flight.png",
+    portrait: "/images/quiet-flight-portrait.png",
+  },
+  "paper-battery": {
+    landscape: "/images/paper-battery.png",
+    portrait: "/images/paper-battery.png",
+  },
+  "laundry-robot": {
+    landscape: "/images/laundry-robot.png",
+    portrait: "/images/laundry-robot.png",
+  },
+};
+
+export function storyImage(
+  story: Pick<PublicationStory, "slug" | "heroImageURL">,
+  orientation: "landscape" | "portrait" = "landscape",
+) {
+  return story.heroImageURL ?? localStoryImages[story.slug]?.[orientation] ?? null;
+}
+
 type PayloadMedia = {
   url?: string | null;
   sizes?: { article?: { url?: string | null } | null } | null;
@@ -152,4 +174,9 @@ export async function getCurrentEdition(): Promise<PublicationEdition | null> {
     releaseDate: edition.releaseDate,
     stories: articles.map(normalizeArticle),
   };
+}
+
+export async function getStory(slug: string): Promise<PublicationStory | null> {
+  const edition = await getCurrentEdition();
+  return edition?.stories.find((story) => story.slug === slug) ?? null;
 }

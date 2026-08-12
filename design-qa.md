@@ -1,35 +1,33 @@
-# Launch Detail Design QA
+# Overture Web Home Design QA
 
 ## Evidence
 
-- Source visual: `/Users/maxwiseman/Pictures/Photos Library.photoslibrary/resources/derivatives/C/CF56008A-79D2-4AC2-B2AB-A7DA6074CB01_1_105_c.jpeg`
-- Implementation, light and default 265-point detent: `/var/folders/2m/j4vdhyw53cl3q9hkz537h56r0000gn/T/screenshot_optimized_f55fcaf2-08d5-4d76-a93b-e196a2be86bb.jpg`
-- Implementation, light and compact 80-point detent: `/var/folders/2m/j4vdhyw53cl3q9hkz537h56r0000gn/T/screenshot_optimized_6d62184f-fda1-4f8a-b5d3-f3aa9286fae5.jpg`
-- Implementation, dark and default medium detent: `/var/folders/2m/j4vdhyw53cl3q9hkz537h56r0000gn/T/screenshot_optimized_a93926a8-011f-4619-b1c5-53155113c0d2.jpg`
-- Implementation, dark and large detent: `/var/folders/2m/j4vdhyw53cl3q9hkz537h56r0000gn/T/screenshot_optimized_245c296b-7a1b-4b53-a892-73a5d5f03c7d.jpg`
-- Side-by-side comparison input: `/tmp/overture-detail-comparison.png`
-- Simulator viewport: iPhone 17 Pro, 368 x 800 screenshot pixels.
-- Source pixels: 624 x 1260. Comparison source normalized to 368 x 800.
+- Accepted concept A: `/Users/maxwiseman/.codex/generated_images/019ff36f-7535-7d82-a8fb-dd149532a908/exec-d45a2a50-2dc0-4086-96b5-49ac690fe185.png`
+- Accepted concept B: `/Users/maxwiseman/.codex/generated_images/019ff36f-7535-7d82-a8fb-dd149532a908/exec-04574a58-3aa4-489a-9d52-c7fe921022a5.png`
+- Final implementation capture: `/private/tmp/overture-web-qa-1536x1024.png`
+- Mobile implementation capture: `/private/tmp/overture-web-mobile.png`
+- Source and desktop implementation viewport: 1536 x 1024 pixels.
+- Mobile viewport: 390 x 844 pixels.
+- State: published `Tomorrow Issue`, signed-out web session, collapsed issue navigator.
+- Comparison method: both accepted concepts and the final browser capture were opened together at original detail, after a separate first-pass comparison and correction cycle.
 
-## Findings
+## Final Comparison
 
-No actionable P0, P1, or P2 differences remain for the requested launch-detail layout.
-
-- Layout: the mission hierarchy remains above a tall, live rocket model while a native sheet overlays the lower portion of the stage. The 265-point default restores the earlier compact detail proportion; the 80-point inspection state exposes nearly the entire canvas.
-- Typography: mission, vehicle, provider, countdown, sheet title, and detail labels maintain distinct display and supporting hierarchies without clipping.
-- Colors: the stage uses `systemBackground`, matching the launch-list page and adapting cleanly between light and dark appearances. No blue detail-page treatment remains.
-- Surface treatment: the sheet uses the unmodified iOS 26 partial-height presentation surface, allowing the system to provide Liquid Glass at compact and medium heights and an opaque surface at the large detent.
-- Imagery: the live Falcon 9 model remains sharp on a full-screen RealityKit canvas. It is camera-offset at the default detent, then animates to a centered full-vehicle framing at the compact detent without changing or clipping the canvas.
-- Icons: the close control uses a native circular glass button and stays inside the safe area in both appearances.
-- States and interaction: custom 80-point, custom 265-point, and native large detents were exercised. The 265-point detent is initial and undimmed. Compact mode fades header text and countdown without translation, centers the rocket, and trims the sheet to status and launch time. Horizontal drag preserves unrestricted Y-axis spin at every detent; compact mode additionally allows X-axis tilt. Expanding smoothly resets only X rotation while preserving Y. A capped, exponentially damped release velocity adds brief momentum without scaling or skew.
-- Accessibility: the close control and interactive model retain explicit labels, hints, and native control sizing; sheet content remains scrollable at larger text sizes.
+- Layout: the final page takes the full-width cinematic lead and light editorial continuation from concept B, with the compact issue selector from B expanding into the numbered issue navigator from concept A.
+- Typography: the high-contrast serif wordmark and display headlines follow both concepts; supporting navigation, decks, metadata, and labels use restrained sans-serif type.
+- Color and surface: the header and lead retain the near-black and midnight-blue atmosphere, followed by the warm paper reading surface and blue editorial accents.
+- Imagery: the implementation uses the real Overture iOS source images. The lead aircraft spans farther behind the headline than concept B because the accepted local source image has different aircraft geometry; the readability veil preserves the intended hierarchy.
+- Content: visible copy is read from the live Payload edition. The two real secondary stories replace the five illustrative cards in concept A; no articles or editorial copy were invented.
+- Responsive behavior: at 390 x 844 the desktop navigation collapses, the issue selector remains reachable, the portrait composition keeps the aircraft and headline legible, and story cards become a single column.
+- Core interactions: Today, Saved, story links, the expanding issue navigator, search, bookmark toggles, and full article routes were exercised. Search returned the robotics story; bookmarking changed `aria-pressed` to true; all three Payload body sections rendered in the article reader.
+- Console: no current page errors. The only captured warning predated the final `data-scroll-behavior` correction.
 
 ## Comparison History
 
-1. P2: the initial close button's explicit 44-point label combined with glass-style chrome, producing an oversized control clipped at the trailing edge. Fixed with the native circular button shape and large control size.
-2. P2: a clear presentation background plus a custom glass effect replaced the native iOS 26 sheet material. Fixed by removing both overrides so SwiftUI owns the floating glass and large-detent transition.
-3. Requested adjustment: the default detent was restored to 265 points and the compact detent reduced to 80 points; background interaction remains enabled through the default height.
-4. P2: the compact camera initially clipped the top and bottom of the rocket. Fixed with a centered, wider camera framing while keeping the render canvas edge-to-edge.
-5. Final light, dark, compact, default, large, and back-navigation checks passed in the simulator. The constrained pan recognizer compiles against the live visual-center pivot.
+1. P2: the inherited dark theme made the light-section heading white. Fixed by explicitly setting the editorial section foreground.
+2. P2: the search field depended on implicit form submission and was not reliably actionable in browser QA. Fixed with a visible submit control and verified result state.
+3. P2: the issue selector initially exposed only edition metadata. Fixed by adding the numbered, linked three-story navigator drawn from concept A.
+4. P2: the article cards initially had decorative bookmark controls. Fixed with persistent local bookmarks and a signed-in Saved view.
+5. Final desktop, mobile, search, bookmark, issue, article navigation, type, build, and console checks passed.
 
 final result: passed
