@@ -9,10 +9,11 @@ import {
   DropdownMenuTrigger,
 } from "@overture/ui/components/dropdown-menu";
 import { Skeleton } from "@overture/ui/components/skeleton";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
+
+import AuthDialog from "./auth-dialog";
 
 export default function UserMenu() {
   const router = useRouter();
@@ -23,13 +24,7 @@ export default function UserMenu() {
   }
 
   if (!session) {
-    return (
-      <Link href="/login">
-        <Button className="size-11 rounded-full border-white/40 bg-white/4 p-0 text-base text-white hover:bg-white/12 hover:text-white" variant="outline" aria-label="Sign in">
-          M
-        </Button>
-      </Link>
-    );
+    return <AuthDialog />;
   }
 
   return (

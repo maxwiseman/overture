@@ -75,6 +75,7 @@ struct HomeView: View {
 }
 
 private struct HomeHeader: View {
+    @Environment(AuthenticationSession.self) private var authentication
     let showProfile: () -> Void
     var showsFallbackBackground = false
 
@@ -120,9 +121,17 @@ private struct HomeHeader: View {
         }
     }
 
+    @ViewBuilder
     private var profileLabel: some View {
-        Text("M")
-            .font(.system(size: 20, weight: .semibold))
+        Group {
+            if let initials = authentication.userInitials {
+                Text(initials)
+                    .font(.system(size: 18, weight: .semibold))
+            } else {
+                Image(systemName: "person.crop.circle")
+                    .font(.system(size: 23, weight: .medium))
+            }
+        }
             .frame(width: 42, height: 42)
             .contentShape(Circle())
             .accessibilityLabel("Profile and settings")

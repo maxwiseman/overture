@@ -7,6 +7,7 @@ import Security
 @MainActor
 @Observable
 final class AuthenticationSession {
+    private(set) var userName: String?
     private(set) var userEmail: String?
     private(set) var isAuthenticated = false
     private(set) var isWorking = false
@@ -14,6 +15,19 @@ final class AuthenticationSession {
 
     private var currentNonce: String?
     private let tokenStore = AuthTokenStore()
+
+    var userInitials: String? {
+        let nameParts = userName?
+            .split(whereSeparator: \Character.isWhitespace)
+            .map(String.init) ?? []
+
+        if let first = nameParts.first?.first {
+            let last = nameParts.count > 1 ? nameParts.last?.first : nil
+            return [first, last].compactMap { $0 }.map(String.init).joined().uppercased()
+        }
+
+        return nil
+    }
 
     init() {
         isAuthenticated = tokenStore.read() != nil
@@ -43,9 +57,17 @@ final class AuthenticationSession {
             }
 
             let appleEmail = credential.email
+            let appleName = credential.fullName.map {
+                PersonNameComponentsFormatter().string(from: $0)
+            }
             currentNonce = nil
             Task {
-                await exchangeAppleToken(identityToken, nonce: nonce, appleEmail: appleEmail)
+                await exchangeAppleToken(
+                    identityToken,
+                    nonce: nonce,
+                    appleEmail: appleEmail,
+                    appleName: appleName
+                )
             }
         }
     }
@@ -53,6 +75,7 @@ final class AuthenticationSession {
     func signOut() async {
         guard let token = tokenStore.read() else {
             isAuthenticated = false
+            userName = nil
             userEmail = nil
             return
         }
@@ -65,6 +88,7 @@ final class AuthenticationSession {
         _ = try? await URLSession.shared.data(for: request)
         tokenStore.delete()
         isAuthenticated = false
+        userName = nil
         userEmail = nil
     }
 
@@ -82,14 +106,20 @@ final class AuthenticationSession {
                 isAuthenticated = false
                 return
             }
-            userEmail = Self.email(from: data)
+            userName = Self.userField("name", from: data)
+            userEmail = Self.userField("email", from: data)
             isAuthenticated = true
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    private func exchangeAppleToken(_ identityToken: String, nonce: String, appleEmail: String?) async {
+    private func exchangeAppleToken(
+        _ identityToken: String,
+        nonce: String,
+        appleEmail: String?,
+        appleName: String?
+    ) async {
         isWorking = true
         errorMessage = nil
         defer { isWorking = false }
@@ -117,7 +147,8 @@ final class AuthenticationSession {
             }
 
             try tokenStore.save(bearerToken)
-            userEmail = appleEmail ?? Self.email(from: data)
+            userName = Self.userField("name", from: data) ?? appleName
+            userEmail = appleEmail ?? Self.userField("email", from: data)
             isAuthenticated = true
             Haptics.impact()
         } catch {
@@ -125,12 +156,12 @@ final class AuthenticationSession {
         }
     }
 
-    private static func email(from data: Data) -> String? {
+    private static func userField(_ field: String, from data: Data) -> String? {
         guard
             let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
             let user = object["user"] as? [String: Any]
         else { return nil }
-        return user["email"] as? String
+        return user[field] as? String
     }
 
     private static func sha256(_ input: String) -> String {

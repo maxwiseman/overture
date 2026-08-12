@@ -1,7 +1,16 @@
 import type { CollectionConfig } from "payload";
 
+import {
+	revalidatePublicationAfterChange,
+	revalidatePublicationAfterDelete,
+} from "../hooks/revalidatePublication";
+
 export const Editions: CollectionConfig = {
 	slug: "editions",
+	hooks: {
+		afterChange: [revalidatePublicationAfterChange],
+		afterDelete: [revalidatePublicationAfterDelete],
+	},
 	admin: {
 		defaultColumns: ["title", "slug", "releaseDate", "updatedAt"],
 		useAsTitle: "title",

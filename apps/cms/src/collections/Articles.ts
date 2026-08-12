@@ -5,9 +5,17 @@ import {
 	PullQuoteBlock,
 	RichTextBlock,
 } from "../blocks/articleBlocks";
+import {
+	revalidatePublicationAfterChange,
+	revalidatePublicationAfterDelete,
+} from "../hooks/revalidatePublication";
 
 export const Articles: CollectionConfig = {
 	slug: "articles",
+	hooks: {
+		afterChange: [revalidatePublicationAfterChange],
+		afterDelete: [revalidatePublicationAfterDelete],
+	},
 	admin: {
 		defaultColumns: ["title", "status", "publishedAt", "updatedAt"],
 		useAsTitle: "title",

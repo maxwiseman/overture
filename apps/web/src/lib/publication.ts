@@ -144,6 +144,11 @@ function normalizeArticle(article: PayloadArticle): PublicationStory {
 }
 
 export async function getCurrentEdition(): Promise<PublicationEdition | null> {
+  "use cache";
+
+  cacheLife("hours");
+  cacheTag("publication");
+
   const query = new URLSearchParams({
     depth: "2",
     limit: "1",
@@ -151,7 +156,6 @@ export async function getCurrentEdition(): Promise<PublicationEdition | null> {
   });
   const response = await fetch(`${payloadBaseURL()}/api/editions?${query}`, {
     headers: { Accept: "application/json" },
-    cache: "no-store",
   });
 
   if (!response.ok) {
@@ -180,3 +184,4 @@ export async function getStory(slug: string): Promise<PublicationStory | null> {
   const edition = await getCurrentEdition();
   return edition?.stories.find((story) => story.slug === slug) ?? null;
 }
+import { cacheLife, cacheTag } from "next/cache";
