@@ -6,6 +6,8 @@ import WebKit
 struct LaunchesView: View {
     @State private var launchState: LaunchLoadState = .loading
     @State private var isFetching = false
+    @State private var isLoadingMore = false
+    @State private var paginationErrorMessage: String?
     @Namespace private var launchNamespace
 
     var body: some View {
@@ -36,8 +38,8 @@ struct LaunchesView: View {
             launchList(RocketLaunch.placeholderLaunches)
                 .redacted(reason: .placeholder)
                 .allowsHitTesting(false)
-        case .loaded(let launches):
-            launchList(launches)
+        case .loaded(let schedule):
+            launchList(schedule.launches, nextOffset: schedule.nextOffset)
         case .failed(let message):
             VStack(alignment: .leading, spacing: 10) {
                 Label(message, systemImage: "wifi.slash")
@@ -64,9 +66,9 @@ struct LaunchesView: View {
         }
     }
 
-    private func launchList(_ launches: [RocketLaunch]) -> some View {
+    private func launchList(_ launches: [RocketLaunch], nextOffset: Int? = nil) -> some View {
         let supportedLaunches = launches.filter {
-            RocketModelView.supports(vehicle: $0.vehicle)
+            RocketModelView.supports(vehicle: $0.vehicle, spacecraft: $0.spacecraft)
         }
 
         return Group {
@@ -79,6 +81,12 @@ struct LaunchesView: View {
                             .matchedTransitionSource(id: nextLaunch.id, in: launchNamespace)
                     }
                     .buttonStyle(.plain)
+                    .onAppear {
+                        guard supportedLaunches.count == 1, let nextOffset else { return }
+                        Task {
+                            await loadMoreLaunches(offset: nextOffset)
+                        }
+                    }
                 }
             }
 
@@ -93,11 +101,48 @@ struct LaunchesView: View {
                                     .matchedTransitionSource(id: launch.id, in: launchNamespace)
                             }
                             .buttonStyle(.plain)
+                            .onAppear {
+                                guard launch.id == supportedLaunches.last?.id,
+                                      let nextOffset else {
+                                    return
+                                }
+                                Task {
+                                    await loadMoreLaunches(offset: nextOffset)
+                                }
+                            }
                         }
                     }
                 }
             }
+
+            if let nextOffset {
+                paginationFooter(nextOffset: nextOffset)
+            }
         }
+    }
+
+    @ViewBuilder
+    private func paginationFooter(nextOffset: Int) -> some View {
+        VStack(spacing: 10) {
+            if isLoadingMore {
+                ProgressView()
+                    .accessibilityLabel("Loading more launches")
+            } else if let paginationErrorMessage {
+                Label(paginationErrorMessage, systemImage: "wifi.slash")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+
+                Button("Try Loading More") {
+                    Task {
+                        await loadMoreLaunches(offset: nextOffset)
+                    }
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
     }
 
     private func loadLaunches(forceRefresh: Bool = false) async {
@@ -108,12 +153,16 @@ struct LaunchesView: View {
         }
 
         isFetching = true
+        paginationErrorMessage = nil
         defer { isFetching = false }
 
         do {
-            let launches = try await LaunchLibraryClient().upcomingLaunches(forceRefresh: forceRefresh)
+            let page = try await LaunchLibraryClient().upcomingLaunches(forceRefresh: forceRefresh)
             guard !Task.isCancelled else { return }
-            launchState = .loaded(launches)
+            launchState = .loaded(LaunchSchedule(
+                launches: page.launches,
+                nextOffset: page.nextOffset
+            ))
         } catch is CancellationError {
             return
         } catch let error as URLError where error.code == .cancelled {
@@ -124,6 +173,39 @@ struct LaunchesView: View {
             } else {
                 launchState = .failed(Self.failureMessage(for: error))
             }
+        }
+    }
+
+    private func loadMoreLaunches(offset: Int) async {
+        guard !isLoadingMore,
+              case .loaded(let currentSchedule) = launchState,
+              currentSchedule.nextOffset == offset else {
+            return
+        }
+
+        isLoadingMore = true
+        paginationErrorMessage = nil
+        defer { isLoadingMore = false }
+
+        do {
+            let page = try await LaunchLibraryClient().upcomingLaunches(offset: offset)
+            guard !Task.isCancelled else { return }
+
+            var launchesByID = Dictionary(
+                uniqueKeysWithValues: currentSchedule.launches.map { ($0.id, $0) }
+            )
+            page.launches.forEach { launchesByID[$0.id] = $0 }
+
+            launchState = .loaded(LaunchSchedule(
+                launches: launchesByID.values.sorted { $0.date < $1.date },
+                nextOffset: page.nextOffset
+            ))
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
+        } catch {
+            paginationErrorMessage = "More launches couldn't be loaded."
         }
     }
 
@@ -145,8 +227,13 @@ struct LaunchesView: View {
 
 private enum LaunchLoadState {
     case loading
-    case loaded([RocketLaunch])
+    case loaded(LaunchSchedule)
     case failed(String)
+}
+
+private struct LaunchSchedule {
+    let launches: [RocketLaunch]
+    let nextOffset: Int?
 }
 
 private struct LaunchSectionHeader: View {
@@ -183,7 +270,7 @@ private struct LaunchCard: View {
             Color(.secondarySystemBackground)
 
             if !dynamicTypeSize.isAccessibilitySize {
-                RocketCardModelView(vehicle: launch.vehicle)
+                RocketCardModelView(vehicle: launch.vehicle, spacecraft: launch.spacecraft)
                     .frame(width: 150, height: 320)
                     .padding(.trailing, -8)
                     .padding(.bottom, -6)
@@ -301,6 +388,7 @@ private struct RocketLaunchDetailView: View {
 
             RocketDetailModelView(
                 vehicle: launch.vehicle,
+                spacecraft: launch.spacecraft,
                 isCentered: isInspectingModel
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -694,6 +782,7 @@ private struct RocketLaunch: Identifiable, Hashable {
     let mission: String
     let shortTitle: String
     let vehicle: String
+    let spacecraft: String?
     let provider: String
     let date: Date
     let launchWindow: String
@@ -742,6 +831,7 @@ private struct RocketLaunch: Identifiable, Hashable {
             mission: "Artemis Cargo Demo",
             shortTitle: "Artemis Cargo",
             vehicle: "SLS Block 1B",
+            spacecraft: nil,
             provider: "NASA",
             date: firstDate,
             launchWindow: Self.windowFormatter.string(from: firstDate),
@@ -761,6 +851,7 @@ private struct RocketLaunch: Identifiable, Hashable {
             mission: "Starship Flight 14",
             shortTitle: "Starship",
             vehicle: "Starship Super Heavy",
+            spacecraft: nil,
             provider: "SpaceX",
             date: secondDate,
             launchWindow: Self.windowFormatter.string(from: secondDate),
@@ -780,6 +871,8 @@ private struct RocketLaunch: Identifiable, Hashable {
 }
 
 private struct LaunchLibraryClient {
+    private static let pageSize = 25
+
     private static let session: URLSession = {
         let configuration = URLSessionConfiguration.default
         configuration.waitsForConnectivity = true
@@ -788,17 +881,25 @@ private struct LaunchLibraryClient {
         return URLSession(configuration: configuration)
     }()
 
-    func upcomingLaunches(forceRefresh: Bool = false) async throws -> [RocketLaunch] {
-        if !forceRefresh, let cachedLaunches = await LaunchLibraryCache.shared.cachedLaunches {
-            return cachedLaunches
+    func upcomingLaunches(
+        offset: Int = 0,
+        forceRefresh: Bool = false
+    ) async throws -> LaunchPage {
+        if offset == 0,
+           !forceRefresh,
+           let cachedPage = await LaunchLibraryCache.shared.cachedPage {
+            return cachedPage
         }
 
         var components = URLComponents(string: "https://ll.thespacedevs.com/2.3.0/launches/upcoming/")!
         components.queryItems = [
-            URLQueryItem(name: "limit", value: "10"),
+            URLQueryItem(name: "limit", value: String(Self.pageSize)),
             URLQueryItem(name: "mode", value: "detailed"),
             URLQueryItem(name: "format", value: "json"),
         ]
+        if offset > 0 {
+            components.queryItems?.append(URLQueryItem(name: "offset", value: String(offset)))
+        }
 
         guard let url = components.url else {
             throw URLError(.badURL)
@@ -806,7 +907,7 @@ private struct LaunchLibraryClient {
 
         let cachePolicy: URLRequest.CachePolicy = forceRefresh
             ? .reloadIgnoringLocalCacheData
-            : .returnCacheDataElseLoad
+            : .useProtocolCachePolicy
         var request = URLRequest(url: url, cachePolicy: cachePolicy, timeoutInterval: 20)
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
@@ -826,12 +927,32 @@ private struct LaunchLibraryClient {
             .map(RocketLaunch.init(response:))
             .filter { $0.date > now && !$0.isTerminal }
             .sorted { $0.date < $1.date }
-        guard !launches.isEmpty else {
+        guard !launches.isEmpty || payload.next != nil else {
             throw LaunchLibraryError.emptySchedule
         }
-        await LaunchLibraryCache.shared.store(launches)
-        return launches
+
+        let page = LaunchPage(
+            launches: launches,
+            nextOffset: payload.next.flatMap(Self.offset(from:))
+        )
+        if offset == 0 {
+            await LaunchLibraryCache.shared.store(page)
+        }
+        return page
     }
+
+    private static func offset(from url: URL) -> Int? {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let value = components.queryItems?.first(where: { $0.name == "offset" })?.value else {
+            return nil
+        }
+        return Int(value)
+    }
+}
+
+private struct LaunchPage {
+    let launches: [RocketLaunch]
+    let nextOffset: Int?
 }
 
 private enum LaunchLibraryError: LocalizedError {
@@ -853,18 +974,18 @@ private enum LaunchLibraryError: LocalizedError {
 private actor LaunchLibraryCache {
     static let shared = LaunchLibraryCache()
 
-    private var launches: [RocketLaunch]?
+    private var page: LaunchPage?
     private var cachedAt: Date?
     private let timeToLive: TimeInterval = 30 * 60
 
-    var cachedLaunches: [RocketLaunch]? {
-        guard let launches, let cachedAt else { return nil }
+    var cachedPage: LaunchPage? {
+        guard let page, let cachedAt else { return nil }
         guard Date().timeIntervalSince(cachedAt) < timeToLive else { return nil }
-        return launches
+        return page
     }
 
-    func store(_ launches: [RocketLaunch]) {
-        self.launches = launches
+    func store(_ page: LaunchPage) {
+        self.page = page
         cachedAt = Date()
     }
 }
@@ -900,6 +1021,7 @@ private actor CachedImageLoader {
 }
 
 private struct LaunchLibraryResponse: Decodable {
+    let next: URL?
     let results: [LaunchLibraryLaunch]
 }
 
@@ -950,6 +1072,20 @@ private struct LaunchProvider: Decodable {
 
 private struct LaunchRocket: Decodable {
     let configuration: LaunchRocketConfiguration?
+    let spacecraftStage: [LaunchSpacecraftStage]?
+
+    enum CodingKeys: String, CodingKey {
+        case configuration
+        case spacecraftStage = "spacecraft_stage"
+    }
+}
+
+private struct LaunchSpacecraftStage: Decodable {
+    let spacecraft: LaunchSpacecraft?
+}
+
+private struct LaunchSpacecraft: Decodable {
+    let name: String?
 }
 
 private struct LaunchRocketConfiguration: Decodable {
@@ -1020,6 +1156,9 @@ private extension RocketLaunch {
             mission: missionName,
             shortTitle: missionName.components(separatedBy: "|").last?.trimmingCharacters(in: .whitespacesAndNewlines) ?? missionName,
             vehicle: response.rocket?.configuration?.fullName ?? response.rocket?.configuration?.name ?? "Rocket",
+            spacecraft: response.rocket?.spacecraftStage?
+                .compactMap(\.spacecraft?.name)
+                .first,
             provider: response.launchServiceProvider?.name ?? "Launch provider",
             date: launchDate,
             launchWindow: Self.windowFormatter.string(from: launchDate),

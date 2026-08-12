@@ -316,6 +316,11 @@ private struct ModelAttributionsView: View {
             sourceURL: URL(string: "https://sketchfab.com/3d-models/spacex-falcon-9-block-5-61067a8b341c4b4b96053d5fa607f232")!
         ),
         ModelCredit(
+            name: "Falcon 9 Crew Dragon",
+            creator: "KUBAHA",
+            sourceURL: URL(string: "https://sketchfab.com/3d-models/falcon-9-crew-dragon-7cbafced513f4bec9d0a956c94a3bfd1")!
+        ),
+        ModelCredit(
             name: "Falcon Heavy",
             creator: "SunnyChen753 / SW fan",
             sourceURL: URL(string: "https://sketchfab.com/3d-models/spacex-falcon-heavy-2f11453207944cedba00e2c6c1aa1269")!
@@ -324,6 +329,16 @@ private struct ModelAttributionsView: View {
             name: "Starship Block 3",
             creator: "Clarence365",
             sourceURL: URL(string: "https://sketchfab.com/3d-models/spacex-starship-block-3-6f6c6f88a3eb4b4d822fdca66733fbb2")!
+        ),
+        ModelCredit(
+            name: "Firefly Alpha",
+            creator: "Clarence365",
+            sourceURL: URL(string: "https://sketchfab.com/3d-models/firefly-alpha-rocket-9ae27271818d4a4dbe8290cadb044a11")!
+        ),
+        ModelCredit(
+            name: "Electron",
+            creator: "Stanley Creative",
+            sourceURL: URL(string: "https://sketchfab.com/3d-models/electron-rocket-lab-0376dfab27574a909cb8714841379894")!
         ),
     ]
 

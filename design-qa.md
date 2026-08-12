@@ -21,7 +21,7 @@ No actionable P0, P1, or P2 differences remain for the requested launch-detail l
 - Surface treatment: the sheet uses the unmodified iOS 26 partial-height presentation surface, allowing the system to provide Liquid Glass at compact and medium heights and an opaque surface at the large detent.
 - Imagery: the live Falcon 9 model remains sharp on a full-screen RealityKit canvas. It is camera-offset at the default detent, then animates to a centered full-vehicle framing at the compact detent without changing or clipping the canvas.
 - Icons: the close control uses a native circular glass button and stays inside the safe area in both appearances.
-- States and interaction: custom 80-point, custom 265-point, and native large detents were exercised. The 265-point detent is initial and undimmed. Compact mode fades header text and countdown without translation, centers the rocket, and trims the sheet to status and launch time. The full canvas installs simultaneous one-finger rotation and pinch-zoom gestures with bounded zoom.
+- States and interaction: custom 80-point, custom 265-point, and native large detents were exercised. The 265-point detent is initial and undimmed. Compact mode fades header text and countdown without translation, centers the rocket, and trims the sheet to status and launch time. Horizontal drag preserves unrestricted Y-axis spin at every detent; compact mode additionally allows X-axis tilt. Expanding smoothly resets only X rotation while preserving Y. A capped, exponentially damped release velocity adds brief momentum without scaling or skew.
 - Accessibility: the close control and interactive model retain explicit labels, hints, and native control sizing; sheet content remains scrollable at larger text sizes.
 
 ## Comparison History
@@ -30,6 +30,6 @@ No actionable P0, P1, or P2 differences remain for the requested launch-detail l
 2. P2: a clear presentation background plus a custom glass effect replaced the native iOS 26 sheet material. Fixed by removing both overrides so SwiftUI owns the floating glass and large-detent transition.
 3. Requested adjustment: the default detent was restored to 265 points and the compact detent reduced to 80 points; background interaction remains enabled through the default height.
 4. P2: the compact camera initially clipped the top and bottom of the rocket. Fixed with a centered, wider camera framing while keeping the render canvas edge-to-edge.
-5. Final light, dark, compact, default, large, and back-navigation checks passed in the simulator. Pan and pinch recognizers compile against the live visual-center pivot; the current simulator automation surface does not synthesize multitouch pinch input.
+5. Final light, dark, compact, default, large, and back-navigation checks passed in the simulator. The constrained pan recognizer compiles against the live visual-center pivot.
 
 final result: passed
