@@ -4,6 +4,10 @@ export const RichTextBlock: Block = {
 	slug: "richText",
 	fields: [
 		{
+			name: "heading",
+			type: "text",
+		},
+		{
 			name: "content",
 			type: "richText",
 			required: true,

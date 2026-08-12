@@ -2,6 +2,10 @@ export type PublicationSection = {
   id: string;
   heading: string | null;
   body: string;
+  glance: string;
+  brief: string;
+  standard: string;
+  full: string;
 };
 
 export type PublicationStory = {
@@ -60,11 +64,27 @@ type LexicalNode = {
 
 type PayloadBlock = {
   id?: string | null;
+  blockName?: string | null;
+  heading?: string | null;
   blockType?: string;
   content?: { root?: LexicalNode } | null;
   quote?: string | null;
   attribution?: string | null;
   caption?: string | null;
+};
+
+type PayloadVariantSection = {
+  sourceSectionID: string;
+  heading?: string | null;
+  body: string;
+};
+
+type PayloadVariant = { sections?: PayloadVariantSection[] | null };
+
+type PayloadVariants = {
+  glance?: PayloadVariant | null;
+  brief?: PayloadVariant | null;
+  standard?: PayloadVariant | null;
 };
 
 type PayloadArticle = {
@@ -78,6 +98,7 @@ type PayloadArticle = {
   publishedAt?: string | null;
   heroImage?: PayloadMedia | string | number | null;
   body?: PayloadBlock[] | null;
+  variants?: PayloadVariants | null;
 };
 
 type PayloadEdition = {
@@ -107,18 +128,36 @@ function lexicalText(node: LexicalNode | undefined): string {
   return [ownText, childText].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
 }
 
-function normalizeSections(blocks: PayloadBlock[] | null | undefined): PublicationSection[] {
+function normalizeSections(
+  blocks: PayloadBlock[] | null | undefined,
+  variants: PayloadVariants | null | undefined,
+): PublicationSection[] {
+  const variantMaps = {
+    glance: new Map((variants?.glance?.sections ?? []).map((section) => [section.sourceSectionID, section])),
+    brief: new Map((variants?.brief?.sections ?? []).map((section) => [section.sourceSectionID, section])),
+    standard: new Map((variants?.standard?.sections ?? []).map((section) => [section.sourceSectionID, section])),
+  };
+
   return (blocks ?? []).flatMap((block, index): PublicationSection[] => {
     const id = block.id ?? `section-${index + 1}`;
+    const withVariants = (heading: string | null, full: string): PublicationSection => ({
+      id,
+      heading,
+      body: full,
+      glance: variantMaps.glance.get(id)?.body ?? full,
+      brief: variantMaps.brief.get(id)?.body ?? full,
+      standard: variantMaps.standard.get(id)?.body ?? full,
+      full,
+    });
 
     if (block.blockType === "richText") {
       const body = lexicalText(block.content?.root);
-      return body ? [{ id, heading: null, body }] : [];
+      return body ? [withVariants(block.heading ?? null, body)] : [];
     }
 
     if (block.blockType === "pullQuote" && block.quote) {
       const attribution = block.attribution ? ` — ${block.attribution}` : "";
-      return [{ id, heading: "In their words", body: `“${block.quote}”${attribution}` }];
+      return [withVariants("In their words", `“${block.quote}”${attribution}`)];
     }
 
     return [];
@@ -139,7 +178,7 @@ function normalizeArticle(article: PayloadArticle): PublicationStory {
     readTimeMinutes: article.estimatedReadingMinutes ?? 5,
     publishedAt: article.publishedAt ?? null,
     heroImageURL: absoluteMediaURL(mediaPath),
-    sections: normalizeSections(article.body),
+    sections: normalizeSections(article.body, article.variants),
   };
 }
 

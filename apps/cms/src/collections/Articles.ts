@@ -5,6 +5,8 @@ import {
 	PullQuoteBlock,
 	RichTextBlock,
 } from "../blocks/articleBlocks";
+import { articleGenerationEndpoints } from "../endpoints/articleGeneration";
+import { articleVariantFields } from "../fields/articleVariants";
 import {
 	revalidatePublicationAfterChange,
 	revalidatePublicationAfterDelete,
@@ -12,6 +14,7 @@ import {
 
 export const Articles: CollectionConfig = {
 	slug: "articles",
+	endpoints: articleGenerationEndpoints,
 	hooks: {
 		afterChange: [revalidatePublicationAfterChange],
 		afterDelete: [revalidatePublicationAfterDelete],
@@ -88,10 +91,23 @@ export const Articles: CollectionConfig = {
 			},
 		},
 		{
+			name: "sourceURL",
+			type: "text",
+			index: true,
+			unique: true,
+			admin: {
+				description:
+					"Original URL for an article imported through the Overture share extension.",
+			},
+		},
+		{ name: "importedAt", type: "date", admin: { readOnly: true } },
+		{ name: "importedBy", type: "text", admin: { readOnly: true } },
+		{
 			name: "body",
 			type: "blocks",
 			blocks: [RichTextBlock, ImageBlock, PullQuoteBlock],
 			required: true,
 		},
+		...articleVariantFields,
 	],
 };

@@ -8,6 +8,13 @@
       "when": 1786498152639,
       "tag": "0000_light_vargas",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786574836641,
+      "tag": "0001_spooky_inhumans",
+      "breakpoints": true
     }
   ]
 }

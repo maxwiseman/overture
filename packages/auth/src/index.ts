@@ -80,6 +80,16 @@ export function createAuth() {
       schema: schema,
     }),
     trustedOrigins: [env.CORS_ORIGIN, "https://appleid.apple.com"],
+    user: {
+      additionalFields: {
+        role: {
+          type: ["reader", "editor"],
+          required: true,
+          defaultValue: "reader",
+          input: false,
+        },
+      },
+    },
     socialProviders: apple,
     emailAndPassword: {
       enabled: true,

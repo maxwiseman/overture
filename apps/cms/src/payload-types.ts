@@ -206,8 +206,15 @@ export interface Article {
   estimatedReadingMinutes: number;
   heroImage?: (number | null) | Media;
   publishedAt?: string | null;
+  /**
+   * Original URL for an article imported through the Overture share extension.
+   */
+  sourceURL?: string | null;
+  importedAt?: string | null;
+  importedBy?: string | null;
   body: (
     | {
+        heading?: string | null;
         content: {
           root: {
             type: string;
@@ -242,6 +249,58 @@ export interface Article {
         blockType: 'pullQuote';
       }
   )[];
+  variantGeneration?: {
+    status?: ('generating' | 'needs-review' | 'approved' | 'stale' | 'failed') | null;
+    sourceHash?: string | null;
+    model?: string | null;
+    workflowRunID?: string | null;
+    generatedAt?: string | null;
+    lastError?: string | null;
+  };
+  /**
+   * Full copy remains in Body. These reviewed versions power semantic zoom in the native reader.
+   */
+  variants?: {
+    /**
+     * Glance copy is aligned to the canonical full-article sections and remains editable before publication.
+     */
+    glance?: {
+      sections?:
+        | {
+            sourceSectionID: string;
+            heading?: string | null;
+            body: string;
+            id?: string | null;
+          }[]
+        | null;
+    };
+    /**
+     * Brief copy is aligned to the canonical full-article sections and remains editable before publication.
+     */
+    brief?: {
+      sections?:
+        | {
+            sourceSectionID: string;
+            heading?: string | null;
+            body: string;
+            id?: string | null;
+          }[]
+        | null;
+    };
+    /**
+     * Standard copy is aligned to the canonical full-article sections and remains editable before publication.
+     */
+    standard?: {
+      sections?:
+        | {
+            sourceSectionID: string;
+            heading?: string | null;
+            body: string;
+            id?: string | null;
+          }[]
+        | null;
+    };
+  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -526,12 +585,16 @@ export interface ArticlesSelect<T extends boolean = true> {
   estimatedReadingMinutes?: T;
   heroImage?: T;
   publishedAt?: T;
+  sourceURL?: T;
+  importedAt?: T;
+  importedBy?: T;
   body?:
     | T
     | {
         richText?:
           | T
           | {
+              heading?: T;
               content?: T;
               id?: T;
               blockName?: T;
@@ -551,6 +614,56 @@ export interface ArticlesSelect<T extends boolean = true> {
               attribution?: T;
               id?: T;
               blockName?: T;
+            };
+      };
+  variantGeneration?:
+    | T
+    | {
+        status?: T;
+        sourceHash?: T;
+        model?: T;
+        workflowRunID?: T;
+        generatedAt?: T;
+        lastError?: T;
+      };
+  variants?:
+    | T
+    | {
+        glance?:
+          | T
+          | {
+              sections?:
+                | T
+                | {
+                    sourceSectionID?: T;
+                    heading?: T;
+                    body?: T;
+                    id?: T;
+                  };
+            };
+        brief?:
+          | T
+          | {
+              sections?:
+                | T
+                | {
+                    sourceSectionID?: T;
+                    heading?: T;
+                    body?: T;
+                    id?: T;
+                  };
+            };
+        standard?:
+          | T
+          | {
+              sections?:
+                | T
+                | {
+                    sourceSectionID?: T;
+                    heading?: T;
+                    body?: T;
+                    id?: T;
+                  };
             };
       };
   updatedAt?: T;

@@ -1,13 +1,5 @@
 import Foundation
 
-enum OvertureEnvironment {
-    #if DEBUG
-    static let apiBaseURL = URL(string: "http://localhost:3001")!
-    #else
-    static let apiBaseURL = URL(string: "https://maxw.news")!
-    #endif
-}
-
 struct PublicationEdition: Decodable {
     let id: String
     let slug: String
@@ -66,15 +58,19 @@ private struct PublicationSection: Decodable {
     let id: String
     let heading: String?
     let body: String
+    let glance: String?
+    let brief: String?
+    let standard: String?
+    let full: String?
 
     var articleSection: ArticleSection {
         ArticleSection(
             id: id,
             heading: heading,
-            glance: body,
-            brief: body,
-            standard: body,
-            full: body
+            glance: glance ?? body,
+            brief: brief ?? body,
+            standard: standard ?? body,
+            full: full ?? body
         )
     }
 }
