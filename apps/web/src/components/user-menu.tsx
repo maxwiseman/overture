@@ -25,7 +25,7 @@ export default function UserMenu() {
   if (!session) {
     return (
       <Link href="/login">
-        <Button className="profile-button" variant="outline" aria-label="Sign in">
+        <Button className="size-11 rounded-full border-white/40 bg-white/4 p-0 text-base text-white hover:bg-white/12 hover:text-white" variant="outline" aria-label="Sign in">
           M
         </Button>
       </Link>
@@ -35,7 +35,7 @@ export default function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button className="profile-button" variant="outline" aria-label="Open account menu" />}
+        render={<Button className="size-11 rounded-full border-white/40 bg-white/4 p-0 text-base text-white hover:bg-white/12 hover:text-white" variant="outline" aria-label="Open account menu" />}
       >
         {session.user.name?.trim().charAt(0).toUpperCase() || "M"}
       </DropdownMenuTrigger>

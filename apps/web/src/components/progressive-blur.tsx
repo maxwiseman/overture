@@ -20,11 +20,12 @@ export function ProgressiveBlur({
   children,
 }: ProgressiveBlurProps) {
   const lastIndex = blurLevels.length - 1;
+  const positionClass = position === "top" ? "top-0" : position === "bottom" ? "bottom-0" : "inset-y-0";
 
   return (
     <div
       aria-hidden="true"
-      className={`progressive-blur ${className}`.trim()}
+      className={`pointer-events-none absolute inset-x-0 ${positionClass} ${className}`.trim()}
       data-position={position}
       style={{ height: position === "both" ? "100%" : height }}
     >
@@ -42,7 +43,7 @@ export function ProgressiveBlur({
         return (
           <div
             key={`${blur}-${index}`}
-            className="progressive-blur__layer"
+            className="absolute inset-0"
             style={{
               zIndex: lastIndex - index + 1,
               backdropFilter: `blur(${blur}px)`,
