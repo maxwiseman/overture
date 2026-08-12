@@ -239,6 +239,7 @@ private struct ProfileSettingsSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(NewsStore.self) private var store
     @Environment(AuthenticationSession.self) private var authentication
+    @State private var nameDraft = ""
 
     var body: some View {
         @Bindable var store = store
@@ -247,6 +248,20 @@ private struct ProfileSettingsSheet: View {
             Form {
                 Section {
                     if authentication.isAuthenticated {
+                        TextField("Name", text: $nameDraft)
+                            .textContentType(.name)
+
+                        Button("Save name") {
+                            Task {
+                                await authentication.updateName(nameDraft)
+                            }
+                        }
+                        .disabled(
+                            nameDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                || nameDraft == authentication.userName
+                                || authentication.isWorking
+                        )
+
                         if let userEmail = authentication.userEmail {
                             LabeledContent("Signed in as", value: userEmail)
                         } else {
@@ -271,11 +286,11 @@ private struct ProfileSettingsSheet: View {
                         if authentication.isWorking {
                             ProgressView("Signing in…")
                         }
+                    }
 
-                        if let errorMessage = authentication.errorMessage {
-                            Text(errorMessage)
-                                .foregroundStyle(.red)
-                        }
+                    if let errorMessage = authentication.errorMessage {
+                        Text(errorMessage)
+                            .foregroundStyle(.red)
                     }
                 } header: {
                     Text("Account")
@@ -318,6 +333,12 @@ private struct ProfileSettingsSheet: View {
                 }
             }
             .tint(OvertureTheme.cobalt)
+        }
+        .onAppear {
+            nameDraft = authentication.userName ?? ""
+        }
+        .onChange(of: authentication.userName) { _, newValue in
+            nameDraft = newValue ?? ""
         }
     }
 }

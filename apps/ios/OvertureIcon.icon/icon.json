@@ -54,7 +54,14 @@
             }
           ],
           "image-name" : "Rectangle 2.svg",
-          "name" : "Rectangle 2"
+          "name" : "Rectangle 2",
+          "position" : {
+            "scale" : 0.9,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
         },
         {
           "fill-specializations" : [
@@ -201,7 +208,7 @@
             }
           ],
           "glass" : true,
-          "hidden" : false,
+          "hidden" : true,
           "image-name" : "Untitled 2.svg",
           "name" : "Untitled 2",
           "position" : {

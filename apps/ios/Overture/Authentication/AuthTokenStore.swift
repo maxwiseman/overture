@@ -4,7 +4,7 @@ import Security
 struct AuthTokenStore {
     private let service = "com.overture.news.swiftui.auth"
     private let account = "better-auth-bearer"
-    private let sharedAccessGroup = "group.com.overture.news.shared"
+    private let sharedAccessGroup = "4B785Y2WUY.com.overture.news.shared"
 
     func save(_ token: String) throws {
         deleteShared()

@@ -250,6 +250,9 @@ export interface Article {
       }
   )[];
   variantGeneration?: {
+    /**
+     * After review, editors can mark this version approved. Canonical body edits should be followed by regeneration.
+     */
     status?: ('generating' | 'needs-review' | 'approved' | 'stale' | 'failed') | null;
     sourceHash?: string | null;
     model?: string | null;

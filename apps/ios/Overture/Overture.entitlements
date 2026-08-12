@@ -10,5 +10,9 @@
 	<array>
 		<string>group.com.overture.news.shared</string>
 	</array>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)com.overture.news.shared</string>
+	</array>
 </dict>
 </plist>

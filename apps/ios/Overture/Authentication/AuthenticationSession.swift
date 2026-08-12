@@ -15,6 +15,7 @@ final class AuthenticationSession {
 
     private var currentNonce: String?
     private let tokenStore = AuthTokenStore()
+    private let urlSession = AuthenticationSession.makeNativeAuthSession()
 
     var userInitials: String? {
         let nameParts = userName?
@@ -57,7 +58,8 @@ final class AuthenticationSession {
             }
 
             let appleEmail = credential.email
-            let appleName = credential.fullName.map {
+            let appleNameComponents = credential.fullName
+            let appleName = appleNameComponents.map {
                 PersonNameComponentsFormatter().string(from: $0)
             }
             currentNonce = nil
@@ -66,9 +68,28 @@ final class AuthenticationSession {
                     identityToken,
                     nonce: nonce,
                     appleEmail: appleEmail,
-                    appleName: appleName
+                    appleName: appleName,
+                    appleGivenName: appleNameComponents?.givenName,
+                    appleFamilyName: appleNameComponents?.familyName
                 )
             }
+        }
+    }
+
+    func updateName(_ name: String) async {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty, let token = tokenStore.read() else { return }
+
+        isWorking = true
+        errorMessage = nil
+        defer { isWorking = false }
+
+        do {
+            try await persistName(trimmedName, token: token)
+            userName = trimmedName
+            Haptics.impact()
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 
@@ -85,7 +106,7 @@ final class AuthenticationSession {
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = Data("{}".utf8)
-        _ = try? await URLSession.shared.data(for: request)
+        _ = try? await urlSession.data(for: request)
         tokenStore.delete()
         isAuthenticated = false
         userName = nil
@@ -100,7 +121,7 @@ final class AuthenticationSession {
                 url: OvertureEnvironment.apiBaseURL.appending(path: "api/auth/get-session")
             )
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await urlSession.data(for: request)
             guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
                 tokenStore.delete()
                 isAuthenticated = false
@@ -118,7 +139,9 @@ final class AuthenticationSession {
         _ identityToken: String,
         nonce: String,
         appleEmail: String?,
-        appleName: String?
+        appleName: String?,
+        appleGivenName: String?,
+        appleFamilyName: String?
     ) async {
         isWorking = true
         errorMessage = nil
@@ -130,29 +153,80 @@ final class AuthenticationSession {
             )
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue(
+                OvertureEnvironment.apiBaseURL.absoluteString,
+                forHTTPHeaderField: "Origin"
+            )
+            var appleUser: [String: Any] = [:]
+            var appleUserName: [String: String] = [:]
+            if let appleGivenName, !appleGivenName.isEmpty {
+                appleUserName["firstName"] = appleGivenName
+            }
+            if let appleFamilyName, !appleFamilyName.isEmpty {
+                appleUserName["lastName"] = appleFamilyName
+            }
+            if !appleUserName.isEmpty { appleUser["name"] = appleUserName }
+            if let appleEmail { appleUser["email"] = appleEmail }
+
+            var idToken: [String: Any] = ["token": identityToken, "nonce": nonce]
+            if !appleUser.isEmpty { idToken["user"] = appleUser }
             request.httpBody = try JSONSerialization.data(withJSONObject: [
                 "provider": "apple",
-                "idToken": ["token": identityToken, "nonce": nonce],
+                "idToken": idToken,
             ])
 
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await urlSession.data(for: request)
             guard let response = response as? HTTPURLResponse else {
                 throw AuthenticationError.invalidResponse
             }
             guard (200..<300).contains(response.statusCode) else {
-                throw AuthenticationError.server(response.statusCode)
+                throw AuthenticationError.server(
+                    response.statusCode,
+                    message: Self.serverErrorMessage(from: data)
+                )
             }
             guard let bearerToken = response.value(forHTTPHeaderField: "set-auth-token") else {
                 throw AuthenticationError.missingBearerToken
             }
 
             try tokenStore.save(bearerToken)
-            userName = Self.userField("name", from: data) ?? appleName
+            let storedName = Self.userField("name", from: data)
+            if let appleName, !appleName.isEmpty, storedName?.isEmpty != false {
+                try await persistName(appleName, token: bearerToken)
+                userName = appleName
+            } else {
+                userName = storedName ?? appleName
+            }
             userEmail = appleEmail ?? Self.userField("email", from: data)
             isAuthenticated = true
             Haptics.impact()
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func persistName(_ name: String, token: String) async throws {
+        var request = URLRequest(
+            url: OvertureEnvironment.apiBaseURL.appending(path: "api/auth/update-user")
+        )
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(
+            OvertureEnvironment.apiBaseURL.absoluteString,
+            forHTTPHeaderField: "Origin"
+        )
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["name": name])
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let response = response as? HTTPURLResponse else {
+            throw AuthenticationError.invalidResponse
+        }
+        guard (200..<300).contains(response.statusCode) else {
+            throw AuthenticationError.server(
+                response.statusCode,
+                message: Self.serverErrorMessage(from: data)
+            )
         }
     }
 
@@ -162,6 +236,20 @@ final class AuthenticationSession {
             let user = object["user"] as? [String: Any]
         else { return nil }
         return user[field] as? String
+    }
+
+    private static func serverErrorMessage(from data: Data) -> String? {
+        guard
+            let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else { return nil }
+        return object["message"] as? String ?? object["error"] as? String
+    }
+
+    private static func makeNativeAuthSession() -> URLSession {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.httpCookieStorage = nil
+        configuration.httpShouldSetCookies = false
+        return URLSession(configuration: configuration)
     }
 
     private static func sha256(_ input: String) -> String {
@@ -186,13 +274,14 @@ final class AuthenticationSession {
 
 private enum AuthenticationError: LocalizedError {
     case invalidResponse
-    case server(Int)
+    case server(Int, message: String?)
     case missingBearerToken
 
     var errorDescription: String? {
         switch self {
         case .invalidResponse: "The authentication server returned an invalid response."
-        case .server(let status): "Sign in failed with server status \(status)."
+        case .server(let status, let message):
+            message ?? "Sign in failed with server status \(status)."
         case .missingBearerToken: "Sign in succeeded without a native session token."
         }
     }

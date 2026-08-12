@@ -64,6 +64,7 @@
       "cache": false
     },
     "payload:migrate": {
+      "interactive": true,
       "cache": false,
       "env": ["DATABASE_URL", "PAYLOAD_SECRET", "BLOB_READ_WRITE_TOKEN"]
     },
