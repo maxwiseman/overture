@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ViewTransition } from "react";
 
 import { getStory, storyImage } from "@/lib/publication";
 
@@ -24,11 +25,17 @@ export default async function StoryPage({ params }: StoryPageProps) {
   return (
     <main className="story-page">
       <header className="story-lead">
-        {image ? <Image className="story-lead__image" src={image} alt="" fill priority sizes="100vw" /> : null}
+        {image ? (
+          <ViewTransition name={`story-image-${story.slug}`} share="story-media" default="none">
+            <Image className="story-lead__image" src={image} alt="" fill priority sizes="100vw" />
+          </ViewTransition>
+        ) : null}
         <div className="story-lead__veil" />
         <div className="story-lead__copy">
           <p className="eyebrow">{story.category}</p>
-          <h1>{story.title}</h1>
+          <ViewTransition name={`story-title-${story.slug}`} share="story-title" default="none">
+            <h1>{story.title}</h1>
+          </ViewTransition>
           <p>{story.deck}</p>
           <div><span>By {story.byline}</span><span>{story.readTimeMinutes} min read</span></div>
         </div>
