@@ -9,6 +9,7 @@
       "env": [
         "DATABASE_URL",
         "PAYLOAD_SECRET",
+        "BLOB_READ_WRITE_TOKEN",
         "PAYLOAD_URL",
         "BETTER_AUTH_SECRET",
         "BETTER_AUTH_URL",
@@ -33,6 +34,7 @@
       "env": [
         "DATABASE_URL",
         "PAYLOAD_SECRET",
+        "BLOB_READ_WRITE_TOKEN",
         "PAYLOAD_URL",
         "BETTER_AUTH_SECRET",
         "BETTER_AUTH_URL",
@@ -53,7 +55,7 @@
     },
     "payload:migrate": {
       "cache": false,
-      "env": ["DATABASE_URL", "PAYLOAD_SECRET"]
+      "env": ["DATABASE_URL", "PAYLOAD_SECRET", "BLOB_READ_WRITE_TOKEN"]
     },
     "payload:migrate:create": {
       "cache": false,

@@ -1,10 +1,11 @@
 import Foundation
 
 enum OvertureEnvironment {
-    static let apiBaseURL: URL = {
-        let configuredURL = Bundle.main.object(forInfoDictionaryKey: "OvertureAPIBaseURL") as? String
-        return URL(string: configuredURL ?? "http://localhost:3001")!
-    }()
+    #if DEBUG
+    static let apiBaseURL = URL(string: "http://localhost:3001")!
+    #else
+    static let apiBaseURL = URL(string: "https://maxw.news")!
+    #endif
 }
 
 struct PublicationEdition: Decodable {

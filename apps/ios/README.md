@@ -10,10 +10,10 @@ Sign in with Apple identity tokens for Better Auth bearer sessions stored in Key
 2. Select the `Overture` scheme and an iPhone simulator running iOS 18 or newer.
 3. Press Run.
 
-For Debug, the API base URL is `http://localhost:3001`. Release uses
-`https://api.overture.news`; change `OvertureAPIBaseURL` in the target build settings
-if the production API is hosted elsewhere. The project has no third-party package
-install step.
+Debug builds use `http://localhost:3001`; Release builds use `https://maxw.news`.
+Those defaults live in `OvertureEnvironment` so they are compiled into the correct
+artifact rather than relying on an unverified generated Info.plist key. The project
+has no third-party package install step.
 
 Sign in with Apple requires the `com.overture.news.swiftui` App ID to have the Sign in
 with Apple capability and the backend Apple provider variables described in the root

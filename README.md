@@ -37,7 +37,8 @@ Deploy the monorepo as two projects from the same Git repository:
 - CMS root directory: `apps/cms`
 - Website/API root directory: `apps/web`
 
-The CMS needs `DATABASE_URL` and `PAYLOAD_SECRET`. The website/API needs
+The CMS needs `DATABASE_URL`, `PAYLOAD_SECRET`, and `BLOB_READ_WRITE_TOKEN` from its
+Vercel Blob store. The website/API needs
 `DATABASE_URL`, `PAYLOAD_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, and
 `CORS_ORIGIN`, plus the Apple variables below when Apple sign-in is enabled. Keep
 `PAYLOAD_URL` server-only and point it at the deployed CMS origin.
@@ -48,11 +49,15 @@ Release in this order:
 2. Deploy the CMS and verify its published-edition API.
 3. Set the website's `PAYLOAD_URL` to the CMS HTTPS origin and deploy the website/API.
 4. Verify `/api/auth/ok` and `/api/publication/editions/current` on the public API host.
-5. Point `api.overture.news` at the website/API deployment, then test its TLS certificate.
-6. Build the iOS Release configuration, which uses `https://api.overture.news`.
+5. Point `maxw.news` at the website/API deployment, then test its TLS certificate.
+6. Build the iOS Release configuration, which uses `https://maxw.news`.
 
-Payload's default local media storage is suitable for the current text-only seed, but
-must be replaced with persistent object storage before editors upload production media.
+Payload stores production media in Vercel Blob. When `BLOB_READ_WRITE_TOKEN` is absent,
+such as in a basic local setup, the adapter is disabled and Payload uses local storage.
+
+When `overture.press` is ready, attach `overture.press` and `cms.overture.press` to the
+existing Vercel projects, add the new Apple return URL, update the production origins and
+iOS Release URL, and keep `maxw.news` available through at least one app release.
 
 ## Sign in with Apple
 
@@ -60,7 +65,8 @@ In Apple Developer:
 
 1. Enable Sign in with Apple for the App ID `com.overture.news.swiftui`.
 2. Create a web Service ID for `APPLE_CLIENT_ID` and register
-   `https://<web-host>/api/auth/callback/apple` as its return URL.
+   `https://maxw.news/api/auth/callback/apple` as its return URL. Add the equivalent
+   `overture.press` URL before the domain migration.
 3. Create a Sign in with Apple key. Set `APPLE_TEAM_ID`, `APPLE_KEY_ID`, and
    `APPLE_PRIVATE_KEY`; the server generates a fresh client-secret JWT at startup.
    `APPLE_CLIENT_SECRET` remains available as a manually rotated fallback.
