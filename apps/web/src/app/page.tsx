@@ -2,7 +2,6 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ViewTransition } from "react";
 
 import SaveStoryButton from "@/components/save-story-button";
 import { getCurrentEdition, storyImage } from "@/lib/publication";
@@ -35,16 +34,10 @@ export default async function Home({
   return (
     <main className="publication-home">
       <section className="hero">
-        {leadImage ? (
-          <ViewTransition name={`story-image-${lead.slug}`} share="story-media" default="none">
-            <Image className="hero__image" src={leadImage} alt="" fill priority sizes="100vw" />
-          </ViewTransition>
-        ) : null}
+        {leadImage ? <Image className="hero__image" src={leadImage} alt="" fill priority sizes="100vw" /> : null}
         <div className="hero__veil" />
         <div className="hero__content">
-          <ViewTransition name={`story-title-${lead.slug}`} share="story-title" default="none">
-            <h1>{lead.title}</h1>
-          </ViewTransition>
+          <h1>{lead.title}</h1>
           <p className="hero__deck">{lead.deck}</p>
           <p className="read-time">{lead.readTimeMinutes} min read</p>
           <Link className="hero__link" href={storyHref(lead.slug)} aria-label={`Read ${lead.title}`} />
@@ -80,20 +73,14 @@ export default async function Home({
             return (
               <article className="story-card" key={story.id}>
                 <Link className="story-card__image-link" href={storyHref(story.slug)}>
-                  {image ? (
-                    <ViewTransition name={`story-image-${story.slug}`} share="story-media" default="none">
-                      <Image src={image} alt="" fill sizes="(max-width: 720px) 100vw, 50vw" />
-                    </ViewTransition>
-                  ) : null}
+                  {image ? <Image src={image} alt="" fill sizes="(max-width: 720px) 100vw, 50vw" /> : null}
                 </Link>
                 <div className="story-card__copy">
                   <div className="story-card__meta">
                     <span>{storyNumber.toString().padStart(2, "0")}</span>
                     <span>{story.category}</span>
                   </div>
-                  <ViewTransition name={`story-title-${story.slug}`} share="story-title" default="none">
-                    <h3><Link href={storyHref(story.slug)}>{story.title}</Link></h3>
-                  </ViewTransition>
+                  <h3><Link href={storyHref(story.slug)}>{story.title}</Link></h3>
                   <p>{story.deck}</p>
                   <div className="story-card__footer">
                     <span>{story.readTimeMinutes} min read</span>

@@ -9,21 +9,6 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
-::view-transition-group(.story-media),
-::view-transition-group(.story-title) {
-  animation-duration: 200ms;
-  animation-timing-function: var(--ease-in-out);
-}
-
-::view-transition-old(.story-media),
-::view-transition-new(.story-media),
-::view-transition-old(.story-title),
-::view-transition-new(.story-title) {
-  animation-duration: 200ms;
-  animation-timing-function: var(--ease-out);
-  mix-blend-mode: normal;
-}
-
 html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--overture-paper); }
 button, input { font: inherit; }
@@ -145,17 +130,4 @@ button, input { font: inherit; }
   .story-lead__copy { padding: 150px 20px 48px; }
   .story-lead h1 { font-size: clamp(3.5rem, 16vw, 5rem); }
   .story-lead__copy > p:not(.eyebrow) { font-size: 1.05rem; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(.story-media),
-  ::view-transition-group(.story-title),
-  ::view-transition-old(.story-media),
-  ::view-transition-new(.story-media),
-  ::view-transition-old(.story-title),
-  ::view-transition-new(.story-title) {
-    animation-duration: 100ms;
-    animation-timing-function: var(--ease-out);
-    transform: none;
-  }
 }
