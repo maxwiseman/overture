@@ -4,12 +4,31 @@ import Observation
 @Observable
 final class NewsStore {
     var edition: Edition = .tomorrow
+    var editionTitle = Edition.tomorrow.title
+    var stories: [Story] = Story.all
+    var publicationError: String?
     var savedStoryIDs: Set<String> = []
     var alertsEnabled = true
     var morningEditionNotifications = true
     var productUpdateNotifications = false
     var downloadSavedStories = true
     var openLinksInApp = true
+    private var hasLoadedPublication = false
+
+    func loadPublication() async {
+        guard !hasLoadedPublication else { return }
+        hasLoadedPublication = true
+
+        do {
+            let publication = try await PublicationAPI.shared.currentEdition()
+            guard !publication.stories.isEmpty else { return }
+            editionTitle = publication.title
+            stories = publication.stories
+            publicationError = nil
+        } catch {
+            publicationError = error.localizedDescription
+        }
+    }
 
     func isSaved(_ story: Story) -> Bool {
         savedStoryIDs.contains(story.id)

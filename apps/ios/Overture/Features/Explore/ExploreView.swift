@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct ExploreView: View {
+    @Environment(NewsStore.self) private var store
     @State private var query = ""
 
     private var filteredStories: [Story] {
-        guard !query.isEmpty else { return Story.all }
-        return Story.all.filter {
+        guard !query.isEmpty else { return store.stories }
+        return store.stories.filter {
             $0.title.localizedCaseInsensitiveContains(query)
                 || $0.category.localizedCaseInsensitiveContains(query)
         }
@@ -53,9 +54,7 @@ private struct ExploreRow: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            Image(story.imageName)
-                .resizable()
-                .scaledToFill()
+            StoryImage(story: story)
                 .frame(width: 116, height: 116)
                 .clipShape(.rect(cornerRadius: 14))
 

@@ -33,6 +33,7 @@
     "cms:generate:types": "turbo run generate:types -F @overture/cms",
     "cms:migrate": "turbo run payload:migrate -F @overture/cms",
     "cms:migrate:create": "turbo run payload:migrate:create -F @overture/cms",
+    "cms:seed": "turbo run seed -F @overture/cms",
     "db:push": "turbo run db:push -F @overture/db",
     "db:studio": "turbo run db:studio -F @overture/db",
     "db:generate": "turbo run db:generate -F @overture/db",

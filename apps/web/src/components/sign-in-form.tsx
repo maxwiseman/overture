@@ -52,6 +52,27 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
     <div className="mx-auto w-full mt-10 max-w-md p-6">
       <h1 className="mb-6 text-center text-3xl font-bold">Welcome Back</h1>
 
+      <Button
+        type="button"
+        variant="outline"
+        className="mb-6 w-full"
+        onClick={async () => {
+          const result = await authClient.signIn.social({
+            provider: "apple",
+            callbackURL: "/dashboard",
+          });
+          if (result.error) toast.error(result.error.message ?? "Apple sign in failed");
+        }}
+      >
+        Continue with Apple
+      </Button>
+
+      <div className="mb-6 flex items-center gap-3 text-xs uppercase tracking-widest text-muted-foreground">
+        <span className="h-px flex-1 bg-border" />
+        or use email
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
       <form
         onSubmit={(e) => {
           e.preventDefault();

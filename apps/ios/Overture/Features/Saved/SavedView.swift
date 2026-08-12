@@ -4,7 +4,7 @@ struct SavedView: View {
     @Environment(NewsStore.self) private var store
 
     private var savedStories: [Story] {
-        Story.all.filter { store.savedStoryIDs.contains($0.id) }
+        store.stories.filter { store.savedStoryIDs.contains($0.id) }
     }
 
     var body: some View {

@@ -79,6 +79,7 @@
         "@overture/env": "workspace:*",
         "better-auth": "catalog:",
         "dotenv": "catalog:",
+        "jose": "^6.2.8",
         "zod": "catalog:",
       },
       "devDependencies": {

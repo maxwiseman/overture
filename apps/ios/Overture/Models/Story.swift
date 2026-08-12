@@ -7,6 +7,34 @@ struct Story: Identifiable, Hashable {
     let readTime: String
     let category: String
     let imageName: String
+    let imageURL: URL?
+    let byline: String
+    let publishedAt: Date?
+    let sections: [ArticleSection]
+
+    init(
+        id: String,
+        title: String,
+        deck: String,
+        readTime: String,
+        category: String,
+        imageName: String,
+        imageURL: URL? = nil,
+        byline: String = "Mara Bell",
+        publishedAt: Date? = nil,
+        sections: [ArticleSection] = []
+    ) {
+        self.id = id
+        self.title = title
+        self.deck = deck
+        self.readTime = readTime
+        self.category = category
+        self.imageName = imageName
+        self.imageURL = imageURL
+        self.byline = byline
+        self.publishedAt = publishedAt
+        self.sections = sections
+    }
 
     static let quietFlight = Story(
         id: "quiet-flight",
@@ -74,7 +102,7 @@ enum ReadingDepth: Int, CaseIterable, Identifiable, Comparable {
     }
 }
 
-struct ArticleSection: Identifiable {
+struct ArticleSection: Identifiable, Hashable {
     let id: String
     let heading: String?
     let glance: String
@@ -96,13 +124,17 @@ struct ArticleContent {
     let sections: [ArticleSection]
 
     static func placeholder(for story: Story) -> Self {
+        if !story.sections.isEmpty {
+            return ArticleContent(sections: story.sections)
+        }
+
         switch story.id {
         case Story.paperBattery.id:
-            paperBattery
+            return paperBattery
         case Story.laundryRobot.id:
-            laundryRobot
+            return laundryRobot
         default:
-            quietFlight
+            return quietFlight
         }
     }
 

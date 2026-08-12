@@ -1,6 +1,8 @@
+import AuthenticationServices
 import SwiftUI
 
 struct HomeView: View {
+    @Environment(NewsStore.self) private var store
     @State private var isProfilePresented = false
 
     var body: some View {
@@ -12,6 +14,9 @@ struct HomeView: View {
                     .presentationDetents([.large])
                     .presentationDragIndicator(.hidden)
                     .interactiveDismissDisabled(false)
+            }
+            .task {
+                await store.loadPublication()
             }
     }
 
@@ -44,14 +49,16 @@ struct HomeView: View {
     private func feed(editionTopPadding: CGFloat) -> some View {
         ScrollView {
             LazyVStack(spacing: 0) {
-                LeadStoryView(
-                    story: .quietFlight,
-                    editionTopPadding: editionTopPadding
-                )
+                if let leadStory = store.stories.first {
+                    LeadStoryView(
+                        story: leadStory,
+                        editionTopPadding: editionTopPadding
+                    )
 
-                ForEach(Story.all.dropFirst()) { story in
-                    StoryRow(story: story)
-                        .padding(.horizontal, 24)
+                    ForEach(store.stories.dropFirst()) { story in
+                        StoryRow(story: story)
+                            .padding(.horizontal, 24)
+                    }
                 }
 
                 Text("Three things worth knowing today.")
@@ -174,9 +181,7 @@ private struct LeadStoryView: View {
     var body: some View {
         NavigationLink(value: story) {
             ZStack(alignment: .bottomLeading) {
-                Image("QuietFlightPortrait")
-                    .resizable()
-                    .scaledToFill()
+                StoryImage(story: story, fallbackName: "QuietFlightPortrait")
                     .frame(height: 720)
                     .clipped()
 
@@ -224,9 +229,7 @@ private struct LeadStoryView: View {
 private struct ProfileSettingsSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(NewsStore.self) private var store
-    @State private var email = ""
-    @State private var password = ""
-    @State private var signedInEmail: String?
+    @Environment(AuthenticationSession.self) private var authentication
 
     var body: some View {
         @Bindable var store = store
@@ -234,32 +237,36 @@ private struct ProfileSettingsSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    if let signedInEmail {
-                        LabeledContent("Signed in as", value: signedInEmail)
+                    if authentication.isAuthenticated {
+                        if let userEmail = authentication.userEmail {
+                            LabeledContent("Signed in as", value: userEmail)
+                        } else {
+                            Label("Signed in with Apple", systemImage: "checkmark.circle.fill")
+                        }
 
                         Button("Sign out", role: .destructive) {
-                            withAnimation {
-                                self.signedInEmail = nil
-                                email = ""
-                                password = ""
+                            Task {
+                                await authentication.signOut()
                             }
                         }
                     } else {
-                        TextField("Email", text: $email)
-                            .keyboardType(.emailAddress)
-                            .textContentType(.emailAddress)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-
-                        SecureField("Password", text: $password)
-                            .textContentType(.password)
-
-                        Button("Sign in or create account") {
-                            signedInEmail = email
-                            password = ""
-                            Haptics.impact()
+                        SignInWithAppleButton(.continue) { request in
+                            authentication.prepareAppleRequest(request)
+                        } onCompletion: { result in
+                            authentication.completeAppleAuthorization(result)
                         }
-                        .disabled(email.isEmpty || password.isEmpty)
+                        .signInWithAppleButtonStyle(.black)
+                        .frame(height: 48)
+                        .disabled(authentication.isWorking)
+
+                        if authentication.isWorking {
+                            ProgressView("Signing in…")
+                        }
+
+                        if let errorMessage = authentication.errorMessage {
+                            Text(errorMessage)
+                                .foregroundStyle(.red)
+                        }
                     }
                 } header: {
                     Text("Account")
@@ -389,7 +396,7 @@ private struct EditionMenu: View {
                 }
             }
         } label: {
-            Label(store.edition.title, systemImage: "chevron.down")
+            Label(store.editionTitle, systemImage: "chevron.down")
                 .font(.subheadline.weight(.semibold))
                 .padding(.horizontal, 14)
                 .frame(height: 44)
@@ -427,9 +434,7 @@ private struct StoryRow: View {
                         .foregroundStyle(OvertureTheme.muted)
                 }
 
-                Image(story.imageName)
-                    .resizable()
-                    .scaledToFill()
+                StoryImage(story: story)
                     .frame(width: 158, height: 172)
                     .clipShape(.rect(cornerRadius: 14))
             }
@@ -444,6 +449,32 @@ private struct StoryRow: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Open \(story.title)")
+    }
+}
+
+struct StoryImage: View {
+    let story: Story
+    var fallbackName: String? = nil
+
+    var body: some View {
+        if let imageURL = story.imageURL {
+            AsyncImage(url: imageURL) { phase in
+                switch phase {
+                case .success(let image):
+                    image.resizable().scaledToFill()
+                default:
+                    fallbackImage
+                }
+            }
+        } else {
+            fallbackImage
+        }
+    }
+
+    private var fallbackImage: some View {
+        Image(fallbackName ?? story.imageName)
+            .resizable()
+            .scaledToFill()
     }
 }
 

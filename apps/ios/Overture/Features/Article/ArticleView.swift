@@ -15,7 +15,7 @@ struct ArticleView: View {
         ScrollView(.vertical) {
             VStack(spacing: 0) {
                 StretchyHeroImage(
-                    imageName: story.imageName,
+                    story: story,
                     height: 390,
                     overscroll: heroOverscroll
                 )
@@ -229,15 +229,13 @@ private struct ArticleSectionView: View {
 }
 
 private struct StretchyHeroImage: View {
-    let imageName: String
+    let story: Story
     let height: CGFloat
     let overscroll: CGFloat
 
     var body: some View {
         GeometryReader { proxy in
-            Image(imageName)
-                .resizable()
-                .scaledToFill()
+            StoryImage(story: story)
                 .frame(
                     width: proxy.size.width,
                     height: height + overscroll
@@ -262,9 +260,9 @@ private struct BylineView: View {
                 .background(.primary, in: Circle())
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Mara Bell")
+                Text(story.byline)
                     .font(.subheadline.weight(.bold))
-                Text("August 9, 2026  ·  \(story.readTime)")
+                Text("\(publicationDate)  ·  \(story.readTime)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -284,6 +282,10 @@ private struct BylineView: View {
         }
         .padding(.bottom, 28)
         .overlay(alignment: .bottom) { Divider() }
+    }
+
+    private var publicationDate: String {
+        (story.publishedAt ?? .now).formatted(date: .abbreviated, time: .omitted)
     }
 }
 

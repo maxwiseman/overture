@@ -53,6 +53,19 @@ export const Articles: CollectionConfig = {
 			required: true,
 		},
 		{
+			name: "category",
+			type: "text",
+			defaultValue: "Ideas",
+			required: true,
+		},
+		{
+			name: "estimatedReadingMinutes",
+			type: "number",
+			defaultValue: 5,
+			min: 1,
+			required: true,
+		},
+		{
 			name: "heroImage",
 			type: "upload",
 			relationTo: "media",

@@ -24,6 +24,8 @@
 		A0000000000000000000010F /* Components/RocketArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000210 /* Components/RocketArtwork.swift */; };
 		A00000000000000000000110 /* Components/RocketModelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000211 /* Components/RocketModelView.swift */; };
 		A00000000000000000000111 /* OvertureRockets in Frameworks */ = {isa = PBXBuildFile; productRef = A00000000000000000000D01 /* OvertureRockets */; };
+		A00000000000000000000112 /* Networking/PublicationAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000212 /* Networking/PublicationAPI.swift */; };
+		A00000000000000000000113 /* Authentication/AuthenticationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000213 /* Authentication/AuthenticationSession.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +46,9 @@
 		A0000000000000000000020F /* OvertureIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = OvertureIcon.icon; sourceTree = "<group>"; };
 		A00000000000000000000210 /* Components/RocketArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/RocketArtwork.swift; sourceTree = "<group>"; };
 		A00000000000000000000211 /* Components/RocketModelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/RocketModelView.swift; sourceTree = "<group>"; };
+		A00000000000000000000212 /* Networking/PublicationAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Networking/PublicationAPI.swift; sourceTree = "<group>"; };
+		A00000000000000000000213 /* Authentication/AuthenticationSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authentication/AuthenticationSession.swift; sourceTree = "<group>"; };
+		A00000000000000000000214 /* Overture.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Overture.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +84,9 @@
 				A00000000000000000000207 /* Components/WaveformCard.swift */,
 				A00000000000000000000210 /* Components/RocketArtwork.swift */,
 				A00000000000000000000211 /* Components/RocketModelView.swift */,
+				A00000000000000000000212 /* Networking/PublicationAPI.swift */,
+				A00000000000000000000213 /* Authentication/AuthenticationSession.swift */,
+				A00000000000000000000214 /* Overture.entitlements */,
 				A00000000000000000000208 /* Features/Home/HomeView.swift */,
 				A00000000000000000000209 /* Features/Article/ArticleView.swift */,
 				A0000000000000000000020A /* Features/Explore/ExploreView.swift */,
@@ -187,6 +195,8 @@
 				A0000000000000000000010C /* Features/Alerts/AlertsView.swift in Sources */,
 				A0000000000000000000010F /* Components/RocketArtwork.swift in Sources */,
 				A00000000000000000000110 /* Components/RocketModelView.swift in Sources */,
+				A00000000000000000000112 /* Networking/PublicationAPI.swift in Sources */,
+				A00000000000000000000113 /* Authentication/AuthenticationSession.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -229,12 +239,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = OvertureIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = Overture/Overture.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4B785Y2WUY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Overture;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.news";
+				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking = YES;
+				INFOPLIST_KEY_OvertureAPIBaseURL = "http://localhost:3001";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -257,12 +270,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = OvertureIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = Overture/Overture.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4B785Y2WUY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Overture;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.news";
+				INFOPLIST_KEY_OvertureAPIBaseURL = "https://api.overture.news";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

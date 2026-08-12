@@ -22,6 +22,7 @@ export default buildConfig({
 	},
 	collections: [Users, Media, Articles, Editions],
 	db: postgresAdapter({
+		schemaName: "payload",
 		pool: {
 			connectionString: process.env.DATABASE_URL || "",
 		},

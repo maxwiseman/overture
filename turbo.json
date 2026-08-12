@@ -5,7 +5,21 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "env": [
+        "DATABASE_URL",
+        "PAYLOAD_SECRET",
+        "PAYLOAD_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "CORS_ORIGIN",
+        "APPLE_CLIENT_ID",
+        "APPLE_CLIENT_SECRET",
+        "APPLE_APP_BUNDLE_IDENTIFIER",
+        "APPLE_TEAM_ID",
+        "APPLE_KEY_ID",
+        "APPLE_PRIVATE_KEY"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -15,7 +29,21 @@
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": [
+        "DATABASE_URL",
+        "PAYLOAD_SECRET",
+        "PAYLOAD_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "CORS_ORIGIN",
+        "APPLE_CLIENT_ID",
+        "APPLE_CLIENT_SECRET",
+        "APPLE_APP_BUNDLE_IDENTIFIER",
+        "APPLE_TEAM_ID",
+        "APPLE_KEY_ID",
+        "APPLE_PRIVATE_KEY"
+      ]
     },
     "generate:importmap": {
       "cache": false
@@ -24,24 +52,33 @@
       "cache": false
     },
     "payload:migrate": {
-      "cache": false
+      "cache": false,
+      "env": ["DATABASE_URL", "PAYLOAD_SECRET"]
     },
     "payload:migrate:create": {
-      "cache": false
+      "cache": false,
+      "env": ["DATABASE_URL", "PAYLOAD_SECRET"]
+    },
+    "seed": {
+      "cache": false,
+      "env": ["DATABASE_URL", "PAYLOAD_SECRET"]
     },
     "db:push": {
-      "cache": false
+      "cache": false,
+      "env": ["DATABASE_URL"]
     },
     "db:generate": {
-      "cache": false
+      "cache": false,
+      "env": ["DATABASE_URL"]
     },
     "db:migrate": {
       "cache": false,
-      "persistent": true
+      "env": ["DATABASE_URL"]
     },
     "db:studio": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["DATABASE_URL"]
     }
   }
 }

@@ -1,109 +1,93 @@
-# overture
+# Overture
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines Next.js, Self, and more.
+Overture is a Turborepo with three runtime surfaces:
 
-## Features
+- `apps/cms`: Payload admin, published content, media, drafts, and editions on port 3002.
+- `apps/web`: public Next.js website, publication API, and Better Auth on port 3001.
+- `apps/ios`: native SwiftUI reader and Sign in with Apple client.
 
-- **TypeScript** - For type safety and improved developer experience
-- **Next.js** - Full-stack React framework
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **Shared UI package** - shadcn/ui primitives live in `packages/ui`
-- **Drizzle** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Payload** - Editorial CMS, drafts, media, and content APIs
-- **Authentication** - Better-Auth
-- **Biome** - Linting and formatting
-- **Turborepo** - Optimized monorepo build system
+The content flow is `Payload -> /api/publication -> website and SwiftUI`. Public clients
+can only read published Payload documents; editors authenticated in Payload can still
+read drafts.
 
-## Getting Started
+## Local setup
 
-First, install the dependencies:
+1. Install dependencies with `bun install`.
+2. Copy `apps/cms/.env.example` to `apps/cms/.env` and `apps/web/.env.example` to
+   `apps/web/.env`. Both apps can use the same Postgres `DATABASE_URL`: Better Auth
+   owns `public`, while Payload is isolated in the `payload` schema.
+3. Give Payload and Better Auth separate strong secrets.
+4. Apply the Better Auth development schema with `bun run db:push`.
+5. Apply the checked-in Payload migration with `bun run cms:migrate`.
+6. Start both services with `bun run dev`.
+7. Run `bun run cms:seed` for an idempotent published starter edition, or open
+   `http://localhost:3002/admin` to create the first editor and publish your own.
 
-```bash
-bun install
+The website and iOS app read the newest published edition from
+`GET /api/publication/editions/current`. If Payload is down, the route returns 503 and
+the iOS app keeps its bundled offline edition.
+
+For production, run the Drizzle and Payload migrations as explicit release steps. A
+successful local build does not mean either schema has been applied to production.
+
+## Deployment
+
+Deploy the monorepo as two projects from the same Git repository:
+
+- CMS root directory: `apps/cms`
+- Website/API root directory: `apps/web`
+
+The CMS needs `DATABASE_URL` and `PAYLOAD_SECRET`. The website/API needs
+`DATABASE_URL`, `PAYLOAD_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, and
+`CORS_ORIGIN`, plus the Apple variables below when Apple sign-in is enabled. Keep
+`PAYLOAD_URL` server-only and point it at the deployed CMS origin.
+
+Release in this order:
+
+1. Run `bun run db:migrate` and `bun run cms:migrate` against the production database.
+2. Deploy the CMS and verify its published-edition API.
+3. Set the website's `PAYLOAD_URL` to the CMS HTTPS origin and deploy the website/API.
+4. Verify `/api/auth/ok` and `/api/publication/editions/current` on the public API host.
+5. Point `api.overture.news` at the website/API deployment, then test its TLS certificate.
+6. Build the iOS Release configuration, which uses `https://api.overture.news`.
+
+Payload's default local media storage is suitable for the current text-only seed, but
+must be replaced with persistent object storage before editors upload production media.
+
+## Sign in with Apple
+
+In Apple Developer:
+
+1. Enable Sign in with Apple for the App ID `com.overture.news.swiftui`.
+2. Create a web Service ID for `APPLE_CLIENT_ID` and register
+   `https://<web-host>/api/auth/callback/apple` as its return URL.
+3. Create a Sign in with Apple key. Set `APPLE_TEAM_ID`, `APPLE_KEY_ID`, and
+   `APPLE_PRIVATE_KEY`; the server generates a fresh client-secret JWT at startup.
+   `APPLE_CLIENT_SECRET` remains available as a manually rotated fallback.
+4. Set `APPLE_APP_BUNDLE_IDENTIFIER=com.overture.news.swiftui` so Better Auth accepts
+   native identity tokens whose audience is the app bundle identifier.
+
+The native app hashes a one-time nonce, uses `AuthenticationServices`, sends Apple's
+identity token to `/api/auth/sign-in/social`, captures Better Auth's `set-auth-token`
+header, and keeps that bearer token in Keychain. Email/password remains available on
+the website as a development fallback.
+
+## Commands
+
+- `bun run dev`: start the CMS and website.
+- `bun run dev:cms` / `bun run dev:web`: start one web app.
+- `bun run cms:generate:types`: regenerate Payload types.
+- `bun run cms:migrate:create` / `bun run cms:migrate`: create or apply CMS migrations.
+- `bun run cms:seed`: create or refresh the published starter edition.
+- `bun run db:push`: update a development database directly.
+- `bun run db:generate` / `bun run db:migrate`: create and apply release auth migrations.
+- `bun run check-types`: typecheck all TypeScript apps.
+- `bun run build`: build the CMS and website.
+
+Unsigned iOS build:
+
+```sh
+xcodebuild -project apps/ios/Overture.xcodeproj -scheme Overture \
+  -configuration Debug -sdk iphonesimulator \
+  -derivedDataPath /private/tmp/overture-derived CODE_SIGNING_ALLOWED=NO build
 ```
-
-## Database Setup
-
-This project uses PostgreSQL with Drizzle ORM.
-
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/web/.env` file with your PostgreSQL connection details.
-
-3. Copy `apps/cms/.env.example` to `apps/cms/.env`, use the same PostgreSQL
-   connection, and set a strong, unique `PAYLOAD_SECRET`.
-
-4. Apply the application schema to your database:
-
-```bash
-bun run db:push
-```
-
-Then, run the development server:
-
-```bash
-bun run dev
-```
-
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the fullstack application.
-Payload runs at [http://localhost:3002/admin](http://localhost:3002/admin).
-
-## UI Customization
-
-React web apps in this stack share shadcn/ui primitives through `packages/ui`.
-
-- Change design tokens and global styles in `packages/ui/src/styles/globals.css`
-- Update shared primitives in `packages/ui/src/components/*`
-- Adjust shadcn aliases or style config in `packages/ui/components.json` and `apps/web/components.json`
-
-### Add more shared components
-
-Run this from the project root to add more primitives to the shared UI package:
-
-```bash
-npx shadcn@latest add accordion dialog popover sheet table -c packages/ui
-```
-
-Import shared components like this:
-
-```tsx
-import { Button } from "@overture/ui/components/button";
-```
-
-### Add app-specific blocks
-
-If you want to add app-specific blocks instead of shared primitives, run the shadcn CLI from `apps/web`.
-
-## Git Hooks and Formatting
-
-- Run checks: `bun run check`
-
-## Project Structure
-
-```
-overture/
-├── apps/
-│   ├── cms/         # Payload editorial CMS and content API
-│   ├── ios/         # Native SwiftUI application
-│   └── web/         # Public Next.js application
-├── packages/
-│   ├── ui/          # Shared shadcn/ui components and styles
-│   ├── auth/        # Authentication configuration & logic
-│   └── db/          # Database schema & queries
-```
-
-## Available Scripts
-
-- `bun run dev`: Start all applications in development mode
-- `bun run dev:cms`: Start Payload at port 3002
-- `bun run build`: Build all applications
-- `bun run dev:web`: Start only the web application
-- `bun run cms:generate:types`: Regenerate Payload TypeScript types
-- `bun run cms:migrate:create`: Create a Payload database migration
-- `bun run cms:migrate`: Apply Payload database migrations
-- `bun run check-types`: Check TypeScript types across all apps
-- `bun run db:push`: Push schema changes to database
-- `bun run db:generate`: Generate database client/types
-- `bun run db:migrate`: Run database migrations
-- `bun run db:studio`: Open database studio UI
-- `bun run check`: Run Biome formatting and linting
