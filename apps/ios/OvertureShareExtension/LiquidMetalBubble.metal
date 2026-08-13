@@ -62,6 +62,53 @@ float liquidMetalChannel(
     return mix(channel, gradient, smoothstep(border, border + 0.5 * blur, stripe));
 }
 
+float3 rainbowHSV(float hue, float saturation, float value) {
+    float3 shifted = abs(fract(hue + float3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
+    float3 rgb = clamp(shifted - 1.0, 0.0, 1.0);
+    rgb = rgb * rgb * (3.0 - 2.0 * rgb);
+    return value * mix(float3(1.0), rgb, saturation);
+}
+
+[[ stitchable ]] half4 rainbowWaveField(
+    float2 position,
+    half4 source,
+    float2 size,
+    float time,
+    float rise,
+    float intensity,
+    float darkMode
+) {
+    float2 uv = position / size;
+    float aspect = size.x / max(size.y, 1.0);
+    float2 center = float2(0.5, 1.16 + (1.0 - rise) * 0.48);
+    float2 delta = uv - center;
+    delta.x *= aspect;
+    float radius = length(delta);
+    float phase = radius * 26.0 - time * 0.72;
+    float wave = 0.5 + 0.5 * cos(phase);
+    wave = smoothstep(0.04, 0.96, wave);
+
+    // The surface remains continuous and nearly white. Only saturation rises
+    // and falls with the concentric wave, growing gradually toward the bottom.
+    float depth = smoothstep(0.30, 0.98, uv.y);
+    float saturation = depth * (0.025 + 0.38 * wave) * intensity;
+    float hue = fract(0.90 + radius * 1.28 - time * 0.026);
+    float topFade = smoothstep(0.24, 0.48, uv.y + (rise - 1.0) * 0.18);
+    float3 lightColor = rainbowHSV(hue, saturation, 1.0);
+    lightColor = mix(float3(1.0), lightColor, topFade);
+
+    float3 darkBase = float3(0.018, 0.021, 0.032);
+    float darkWave = depth * (0.12 + 0.88 * wave) * intensity;
+    float3 darkGlow = rainbowHSV(
+        hue,
+        0.34 + 0.34 * wave,
+        0.12 + 0.34 * darkWave
+    );
+    float3 darkColor = mix(darkBase, darkGlow, topFade * darkWave);
+    float3 color = mix(lightColor, darkColor, darkMode);
+    return half4(half3(color), source.a);
+}
+
 [[ stitchable ]] half4 liquidMetalBubble(
     float2 position,
     half4 source,

@@ -5,15 +5,29 @@ import UniformTypeIdentifiers
 struct ShareImportView: View {
     let extensionContext: NSExtensionContext?
     let cancel: () -> Void
+    private let previewsSuccess: Bool
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    @State private var state: ImportState = .submitting
-    @State private var successStartedAt = Date.now
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var state: ImportState
+    @State private var successStartedAt: Date
+
+    init(
+        extensionContext: NSExtensionContext?,
+        cancel: @escaping () -> Void,
+        previewsSuccess: Bool = false
+    ) {
+        self.extensionContext = extensionContext
+        self.cancel = cancel
+        self.previewsSuccess = previewsSuccess
+        _state = State(initialValue: previewsSuccess ? .success : .submitting)
+        _successStartedAt = State(initialValue: .now)
+    }
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(uiColor: .systemBackground).ignoresSafeArea()
 
             if case .success = state {
                 ZStack {
@@ -38,13 +52,13 @@ struct ShareImportView: View {
             } else {
                 Button("Cancel", action: cancel)
                     .font(.body.weight(.medium))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.primary)
                     .padding(.horizontal, 20)
                     .padding(.top, 28)
             }
         }
-        .preferredColorScheme(.light)
         .task {
+            guard !previewsSuccess else { return }
             await importArticle()
         }
     }
@@ -56,10 +70,10 @@ struct ShareImportView: View {
             VStack(spacing: 18) {
                 ProgressView()
                     .controlSize(.regular)
-                    .tint(.black)
+                    .tint(.primary)
                 Text("Submitting for review")
                     .font(.system(.title3, design: .rounded, weight: .semibold))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.primary)
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Submitting for review")
@@ -80,10 +94,10 @@ struct ShareImportView: View {
                     .frame(maxWidth: 300)
                 Button("Close", action: cancel)
                     .buttonStyle(.borderedProminent)
-                    .tint(.black)
+                    .tint(colorScheme == .dark ? .white : .black)
                     .padding(.top, 6)
             }
-            .foregroundStyle(.black)
+            .foregroundStyle(.primary)
             .padding(28)
         }
     }
@@ -96,8 +110,6 @@ struct ShareImportView: View {
             state = .success
         }
         await SuccessHaptics.play(reduced: reduceMotion)
-        try? await Task.sleep(for: .seconds(2))
-        extensionContext?.completeRequest(returningItems: nil)
     }
 
     private func importArticle() async {
@@ -146,52 +158,36 @@ private struct LiquidGlassSuccessWave: View {
     let startedAt: Date
     let reduceMotion: Bool
     let reduceTransparency: Bool
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         TimelineView(.animation(paused: reduceMotion)) { timeline in
             GeometryReader { proxy in
                 let elapsed = max(0, timeline.date.timeIntervalSince(startedAt))
-                let riseProgress = reduceMotion ? 1 : easeOutCubic(min(elapsed / 0.42, 1))
-                let bubbleProgress = reduceMotion ? 1 : easeInOutCubic(
-                    min(max((elapsed - 0.34) / 0.56, 0), 1)
-                )
+                let riseProgress = reduceMotion ? 1 : easeOutCubic(min(elapsed / 0.62, 1))
+                let labelProgress = reduceMotion ? 1 : smoothstep(0.46, 0.76, elapsed)
                 let width = proxy.size.width
                 let height = proxy.size.height
-                let waveDiameter = width * 1.5
-                let bubbleDiameter = min(width * 0.60, 244)
-                let waveTop = mix(height + 40, height * 0.47, riseProgress)
-                let waveCenter = CGPoint(x: width / 2, y: waveTop + waveDiameter / 2)
-                let bubbleCenter = CGPoint(x: width / 2, y: height * 0.56)
-                let lensCenter = mix(waveCenter, bubbleCenter, bubbleProgress)
-                let diameter = mix(waveDiameter, bubbleDiameter, bubbleProgress)
 
                 ZStack {
-                    Color.white
+                    Color(uiColor: .systemBackground)
 
                     Rectangle()
                         .fill(.white)
                         .colorEffect(
-                            ShaderLibrary.liquidMetalBubble(
+                            ShaderLibrary.rainbowWaveField(
                                 .float2(proxy.size),
-                                .float2(lensCenter),
-                                .float(Float(diameter / 2)),
                                 .float(Float(reduceMotion ? 0 : elapsed)),
-                                .float(reduceTransparency ? 0.28 : 1)
+                                .float(Float(riseProgress)),
+                                .float(reduceTransparency ? 0.45 : 1),
+                                .float(colorScheme == .dark ? 1 : 0)
                             )
                         )
 
-                    ZStack {
-                        Text("Submitted")
-                            .font(.system(.title3, design: .rounded, weight: .semibold))
-                            .foregroundStyle(.black)
-                            .position(bubbleCenter)
-                    }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .mask {
-                            Circle()
-                                .frame(width: diameter, height: diameter)
-                                .position(lensCenter)
-                        }
+                    submittedBadge(reduceTransparency: reduceTransparency)
+                        .position(x: width / 2, y: height * 0.40)
+                        .opacity(labelProgress)
+                        .scaleEffect(0.94 + labelProgress * 0.06)
                 }
             }
         }
@@ -199,25 +195,32 @@ private struct LiquidGlassSuccessWave: View {
         .accessibilityHidden(true)
     }
 
-    private func mix(_ start: CGFloat, _ end: CGFloat, _ progress: Double) -> CGFloat {
-        start + (end - start) * progress
-    }
-
-    private func mix(_ start: CGPoint, _ end: CGPoint, _ progress: Double) -> CGPoint {
-        CGPoint(
-            x: mix(start.x, end.x, progress),
-            y: mix(start.y, end.y, progress)
-        )
-    }
-
     private func easeOutCubic(_ value: Double) -> Double {
         1 - pow(1 - value, 3)
     }
 
-    private func easeInOutCubic(_ value: Double) -> Double {
-        value < 0.5
-            ? 4 * value * value * value
-            : 1 - pow(-2 * value + 2, 3) / 2
+    private func smoothstep(_ edge0: Double, _ edge1: Double, _ value: Double) -> Double {
+        let progress = min(max((value - edge0) / (edge1 - edge0), 0), 1)
+        return progress * progress * (3 - 2 * progress)
+    }
+
+    @ViewBuilder
+    private func submittedBadge(reduceTransparency: Bool) -> some View {
+        let label = Text("Submitted")
+            .font(.system(.title3, design: .rounded, weight: .semibold))
+            .foregroundStyle(.primary)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 14)
+
+        if reduceTransparency {
+            label
+                .background(Color(uiColor: .secondarySystemBackground), in: Capsule())
+                .overlay(Capsule().stroke(.primary.opacity(0.08), lineWidth: 1))
+                .shadow(color: .black.opacity(0.08), radius: 18, y: 8)
+        } else {
+            label
+                .glassEffect(.clear, in: .capsule)
+        }
     }
 }
 

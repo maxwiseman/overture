@@ -1,29 +1,36 @@
-# Share extension liquid-metal success UI design QA
+# Share extension rainbow-wave success UI design QA
 
 ## Source and capture
 
-- Primary source: Paper Design liquid-metal circle using the supplied values (`#aaaaaa`, `#ffffff`, repetition `2`, softness `0.1`, red/blue shift `0.3`, distortion `0.07`, contour `0.4`, angle `70`, speed `1`, scale `0.6`).
-- Reference still: `/var/folders/2m/j4vdhyw53cl3q9hkz537h56r0000gn/T/codex-clipboard-7e026e39-cf28-41f6-acdc-1c8528b41036.png`.
-- Runtime capture: `/tmp/overture-paper-exact-final.png` on iPhone 17 Pro Simulator, iOS 26.5.
-- Side-by-side comparison: `/tmp/overture-paper-final-qa.png`.
-- Motion capture: `/tmp/overture-paper-exact-motion.mp4`.
+- Visual direction: return to the original soft rainbow-wave concept on a quiet white screen.
+- Settled simulator capture: `/tmp/overture-rainbow-waves-replay.png`.
+- Replay interaction capture: `/tmp/overture-rainbow-waves-restarted.png`.
+- Final light appearance: `/tmp/overture-light-circular-waves-final.png`.
+- Final dark appearance: `/tmp/overture-dark-circular-waves.png`.
+- Runtime: iPhone 17 Pro Simulator, iOS 26.5.
 
 ## Visual assessment
 
-- Passed: the Swift/Metal implementation preserves Paper's circle coordinate system, contour compression, stripe construction, simplex-noise distortion, and independent red/blue dispersion.
-- Passed: the settled frame reproduces the reference's two isolated contour pools, dark metallic field, white cores, and tight chromatic edge bands.
-- Passed: the circle geometry is intentional; the square shown earlier was only Paper's preview container.
-- Passed: the extra native-glass overlay and custom reading-zone wash were removed, so they no longer blur or reshape the shader output.
-- Passed: the large quiet white field remains, and the bubble settles slightly below center at 60% of screen width.
-- Passed: `Submitted` remains centered and is revealed by the same morphing circle mask, with no redundant `Done` label or separate pill.
-- Passed: the 1.5-screen-width entrance still rises from below and contracts into the final circle.
+- Passed: the liquid-metal wave experiment has been removed from the success composition.
+- Passed: three oversized pastel arcs rise from below the screen and retain ample white space above.
+- Passed: each arc combines a soft chromatic bloom, translucent rainbow body, white highlight, and crisp colored rim.
+- Passed: the waves move with subtle independent horizontal drift and color rotation rather than behaving as a static gradient image.
+- Passed: the final field uses true concentric circles; saturation, rather than geometry or brightness, carries the continuous wave pattern.
+- Passed: `Submitted` is centered in a separate native clear Liquid Glass capsule, preserving legibility while picking up color from the nearest wave.
+- Passed: the capsule enters after the waves establish the success state, using opacity and a restrained 0.94-to-1 scale transition.
+- Passed: there is no redundant top-level `Done` label.
+- Passed: Light Mode retains a white field with restrained pastel saturation.
+- Passed: Dark Mode uses a near-black field with subdued luminous wave crests rather than mechanically inverting the light palette.
 
 ## Interaction and accessibility
 
-- Success is a one-shot entrance followed by automatic dismissal after two seconds.
-- The success notification and two restrained impact haptics align with the visual transition.
-- Reduce Motion skips the morph and freezes the shader.
-- Reduce Transparency lowers shader distortion and chromatic intensity without substituting a different visual language.
-- Failure remains persistent, readable, and manually dismissible.
+- Success remains visible until the user dismisses the share sheet; it no longer auto-dismisses.
+- Success notification and two restrained impact haptics remain aligned with the visual transition.
+- Reduce Motion resolves directly to the settled composition.
+- Reduce Transparency uses softer, more opaque waves and a white capsule fallback.
+- System background, semantic text colors, progress state, error state, glass capsule, and preview controls all respond to the live system appearance.
+- The DEBUG-only main-app preview is available with `--share-success-preview`.
+- Its persistent Liquid Glass Replay control reconstructs the success view from frame zero and has the `replay-share-success-animation` accessibility identifier.
+- Simulator interaction passed: Replay visibly restarted the wave and capsule sequence.
 
 Final result: passed

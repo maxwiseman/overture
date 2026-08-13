@@ -33,12 +33,12 @@
                 ],
                 "orientation" : {
                   "start" : {
-                    "x" : 0.5,
-                    "y" : 0
+                    "x" : 0.0719187280143722,
+                    "y" : -0.2955452945324758
                   },
                   "stop" : {
-                    "x" : 0.7104376495713599,
-                    "y" : 0.6670784272038858
+                    "x" : 1,
+                    "y" : 1.042588479676925
                   }
                 }
               }
@@ -134,7 +134,14 @@
             }
           ],
           "image-name" : "Ellipse 1.svg",
-          "name" : "Ellipse 1"
+          "name" : "Ellipse 1",
+          "position" : {
+            "scale" : 0.9,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
         },
         {
           "fill-specializations" : [

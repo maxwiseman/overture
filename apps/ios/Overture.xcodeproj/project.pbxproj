@@ -34,6 +34,8 @@
 		A00000000000000000000119 /* Networking/OvertureEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000216 /* Networking/OvertureEnvironment.swift */; };
 		A0000000000000000000011A /* OvertureShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A0000000000000000000021B /* OvertureShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A0000000000000000000011B /* LiquidMetalBubble.metal in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000021C /* LiquidMetalBubble.metal */; };
+		A0000000000000000000011C /* ShareImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000218 /* ShareImportView.swift */; };
+		A0000000000000000000011D /* LiquidMetalBubble.metal in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000021C /* LiquidMetalBubble.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -294,6 +296,8 @@
 				A00000000000000000000113 /* Authentication/AuthenticationSession.swift in Sources */,
 				A00000000000000000000114 /* Authentication/AuthTokenStore.swift in Sources */,
 				A00000000000000000000115 /* Networking/OvertureEnvironment.swift in Sources */,
+				A0000000000000000000011C /* ShareImportView.swift in Sources */,
+				A0000000000000000000011D /* LiquidMetalBubble.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -390,6 +394,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4B785Y2WUY;
 				ENABLE_PREVIEWS = YES;
+				EXCLUDED_SOURCE_FILE_NAMES = "ShareImportView.swift LiquidMetalBubble.metal";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Overture;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.news";
