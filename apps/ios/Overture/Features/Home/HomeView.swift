@@ -67,6 +67,9 @@ struct HomeView: View {
                     .padding(.vertical, 30)
             }
         }
+        .refreshable {
+            await store.loadPublication(forceRefresh: true)
+        }
     }
 
     private func showProfile() {

@@ -15,8 +15,8 @@ final class NewsStore {
     var openLinksInApp = true
     private var hasLoadedPublication = false
 
-    func loadPublication() async {
-        guard !hasLoadedPublication else { return }
+    func loadPublication(forceRefresh: Bool = false) async {
+        guard forceRefresh || !hasLoadedPublication else { return }
         hasLoadedPublication = true
 
         do {
