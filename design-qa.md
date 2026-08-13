@@ -1,33 +1,29 @@
-# Overture Web Home Design QA
+# Share extension liquid-metal success UI design QA
 
-## Evidence
+## Source and capture
 
-- Accepted concept A: `/Users/maxwiseman/.codex/generated_images/019ff36f-7535-7d82-a8fb-dd149532a908/exec-d45a2a50-2dc0-4086-96b5-49ac690fe185.png`
-- Accepted concept B: `/Users/maxwiseman/.codex/generated_images/019ff36f-7535-7d82-a8fb-dd149532a908/exec-04574a58-3aa4-489a-9d52-c7fe921022a5.png`
-- Final implementation capture: `/private/tmp/overture-web-qa-1536x1024.png`
-- Mobile implementation capture: `/private/tmp/overture-web-mobile.png`
-- Source and desktop implementation viewport: 1536 x 1024 pixels.
-- Mobile viewport: 390 x 844 pixels.
-- State: published `Tomorrow Issue`, signed-out web session, collapsed issue navigator.
-- Comparison method: both accepted concepts and the final browser capture were opened together at original detail, after a separate first-pass comparison and correction cycle.
+- Primary source: Paper Design liquid-metal circle using the supplied values (`#aaaaaa`, `#ffffff`, repetition `2`, softness `0.1`, red/blue shift `0.3`, distortion `0.07`, contour `0.4`, angle `70`, speed `1`, scale `0.6`).
+- Reference still: `/var/folders/2m/j4vdhyw53cl3q9hkz537h56r0000gn/T/codex-clipboard-7e026e39-cf28-41f6-acdc-1c8528b41036.png`.
+- Runtime capture: `/tmp/overture-paper-exact-final.png` on iPhone 17 Pro Simulator, iOS 26.5.
+- Side-by-side comparison: `/tmp/overture-paper-final-qa.png`.
+- Motion capture: `/tmp/overture-paper-exact-motion.mp4`.
 
-## Final Comparison
+## Visual assessment
 
-- Layout: the final page takes the full-width cinematic lead and light editorial continuation from concept B, with the compact issue selector from B expanding into the numbered issue navigator from concept A.
-- Typography: the high-contrast serif wordmark and display headlines follow both concepts; supporting navigation, decks, metadata, and labels use restrained sans-serif type.
-- Color and surface: the header and lead retain the near-black and midnight-blue atmosphere, followed by the warm paper reading surface and blue editorial accents.
-- Imagery: the implementation uses the real Overture iOS source images. The lead aircraft spans farther behind the headline than concept B because the accepted local source image has different aircraft geometry; the readability veil preserves the intended hierarchy.
-- Content: visible copy is read from the live Payload edition. The two real secondary stories replace the five illustrative cards in concept A; no articles or editorial copy were invented.
-- Responsive behavior: at 390 x 844 the desktop navigation collapses, the issue selector remains reachable, the portrait composition keeps the aircraft and headline legible, and story cards become a single column.
-- Core interactions: Today, Saved, story links, the expanding issue navigator, search, bookmark toggles, and full article routes were exercised. Search returned the robotics story; bookmarking changed `aria-pressed` to true; all three Payload body sections rendered in the article reader.
-- Console: no current page errors. The only captured warning predated the final `data-scroll-behavior` correction.
+- Passed: the Swift/Metal implementation preserves Paper's circle coordinate system, contour compression, stripe construction, simplex-noise distortion, and independent red/blue dispersion.
+- Passed: the settled frame reproduces the reference's two isolated contour pools, dark metallic field, white cores, and tight chromatic edge bands.
+- Passed: the circle geometry is intentional; the square shown earlier was only Paper's preview container.
+- Passed: the extra native-glass overlay and custom reading-zone wash were removed, so they no longer blur or reshape the shader output.
+- Passed: the large quiet white field remains, and the bubble settles slightly below center at 60% of screen width.
+- Passed: `Submitted` remains centered and is revealed by the same morphing circle mask, with no redundant `Done` label or separate pill.
+- Passed: the 1.5-screen-width entrance still rises from below and contracts into the final circle.
 
-## Comparison History
+## Interaction and accessibility
 
-1. P2: the inherited dark theme made the light-section heading white. Fixed by explicitly setting the editorial section foreground.
-2. P2: the search field depended on implicit form submission and was not reliably actionable in browser QA. Fixed with a visible submit control and verified result state.
-3. P2: the issue selector initially exposed only edition metadata. Fixed by adding the numbered, linked three-story navigator drawn from concept A.
-4. P2: the article cards initially had decorative bookmark controls. Fixed with persistent local bookmarks and a signed-in Saved view.
-5. Final desktop, mobile, search, bookmark, issue, article navigation, type, build, and console checks passed.
+- Success is a one-shot entrance followed by automatic dismissal after two seconds.
+- The success notification and two restrained impact haptics align with the visual transition.
+- Reduce Motion skips the morph and freezes the shader.
+- Reduce Transparency lowers shader distortion and chromatic intensity without substituting a different visual language.
+- Failure remains persistent, readable, and manually dismissible.
 
-final result: passed
+Final result: passed

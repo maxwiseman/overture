@@ -33,6 +33,7 @@
 		A00000000000000000000118 /* Authentication/AuthTokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000215 /* Authentication/AuthTokenStore.swift */; };
 		A00000000000000000000119 /* Networking/OvertureEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000216 /* Networking/OvertureEnvironment.swift */; };
 		A0000000000000000000011A /* OvertureShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A0000000000000000000021B /* OvertureShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A0000000000000000000011B /* LiquidMetalBubble.metal in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000021C /* LiquidMetalBubble.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,6 +88,7 @@
 		A00000000000000000000219 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A0000000000000000000021A /* ShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShareExtension.entitlements; sourceTree = "<group>"; };
 		A0000000000000000000021B /* OvertureShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OvertureShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A0000000000000000000021C /* LiquidMetalBubble.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = LiquidMetalBubble.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,6 +152,7 @@
 			children = (
 				A00000000000000000000217 /* ShareViewController.swift */,
 				A00000000000000000000218 /* ShareImportView.swift */,
+				A0000000000000000000021C /* LiquidMetalBubble.metal */,
 				A00000000000000000000219 /* Info.plist */,
 				A0000000000000000000021A /* ShareExtension.entitlements */,
 			);
@@ -302,6 +305,7 @@
 				A00000000000000000000117 /* ShareImportView.swift in Sources */,
 				A00000000000000000000118 /* Authentication/AuthTokenStore.swift in Sources */,
 				A00000000000000000000119 /* Networking/OvertureEnvironment.swift in Sources */,
+				A0000000000000000000011B /* LiquidMetalBubble.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
