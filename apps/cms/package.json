@@ -16,7 +16,7 @@
 		"start": "cross-env NODE_OPTIONS=--no-deprecation next start --port 3002"
 	},
 	"dependencies": {
-		"@mozilla/readability": "^0.6.0",
+		"@ai-sdk/anthropic": "^4.0.38",
 		"@payloadcms/db-postgres": "3.87.1",
 		"@payloadcms/next": "3.87.1",
 		"@payloadcms/richtext-lexical": "3.87.1",
@@ -26,7 +26,6 @@
 		"cross-env": "^7.0.3",
 		"dotenv": "catalog:",
 		"graphql": "^16.8.1",
-		"linkedom": "^0.18.13",
 		"next": "^16.3.0",
 		"payload": "3.87.1",
 		"react": "catalog:",

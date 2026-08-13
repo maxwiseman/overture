@@ -1,15 +1,15 @@
 import { createHash } from "node:crypto";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
-import { Readability } from "@mozilla/readability";
+import { anthropic } from "@ai-sdk/anthropic";
 import config from "@payload-config";
-import { generateText, Output } from "ai";
-import { parseHTML } from "linkedom";
+import { generateText, isStepCount, Output } from "ai";
 import { getPayload } from "payload";
 import { FatalError } from "workflow";
 import { z } from "zod";
 
-const model = process.env.ARTICLE_GENERATION_MODEL ?? "openai/gpt-5.4-mini";
+const model =
+	process.env.ARTICLE_GENERATION_MODEL ?? "anthropic/claude-sonnet-5";
 
 const generatedArticleSchema = z.object({
 	title: z.string().min(1),
@@ -43,14 +43,6 @@ const generatedVariantsSchema = z.object({
 		)
 		.min(1),
 });
-
-type ExtractedArticle = {
-	sourceURL: string;
-	title: string;
-	byline: string | null;
-	excerpt: string | null;
-	text: string;
-};
 
 type CanonicalSection = { id: string; heading: string | null; body: string };
 
@@ -96,55 +88,9 @@ async function assertSafeURL(value: string) {
 	return url;
 }
 
-async function extractArticle(sourceURL: string): Promise<ExtractedArticle> {
+async function validateArticleURL(sourceURL: string) {
 	"use step";
-
-	let currentURL = await assertSafeURL(sourceURL);
-	let response: Response | undefined;
-	for (let redirects = 0; redirects <= 4; redirects += 1) {
-		response = await fetch(currentURL, {
-			headers: { "User-Agent": "Overture Editorial Importer/1.0" },
-			redirect: "manual",
-			signal: AbortSignal.timeout(20_000),
-		});
-		if (response.status < 300 || response.status >= 400) break;
-		const location = response.headers.get("location");
-		if (!location)
-			throw new FatalError(
-				"The article redirect did not include a destination.",
-			);
-		currentURL = await assertSafeURL(new URL(location, currentURL).toString());
-	}
-
-	if (!response?.ok)
-		throw new Error(
-			`Article source returned ${response?.status ?? "no response"}.`,
-		);
-	const contentType = response.headers.get("content-type") ?? "";
-	if (!contentType.includes("text/html"))
-		throw new FatalError("The shared URL is not an HTML article.");
-	const declaredLength = Number(response.headers.get("content-length") ?? 0);
-	if (declaredLength > 2_000_000)
-		throw new FatalError("The shared article is too large to import.");
-
-	const html = (await response.text()).slice(0, 2_000_000);
-	const { document } = parseHTML(html);
-	const article = new Readability(document as unknown as Document, {
-		charThreshold: 200,
-	}).parse();
-	if (!article?.textContent || article.textContent.trim().length < 200) {
-		throw new FatalError(
-			"Overture could not find enough article text at that URL.",
-		);
-	}
-
-	return {
-		sourceURL: currentURL.toString(),
-		title: article.title ?? currentURL.hostname,
-		byline: article.byline ?? null,
-		excerpt: article.excerpt ?? null,
-		text: article.textContent.replace(/\s+/g, " ").trim().slice(0, 120_000),
-	};
+	return (await assertSafeURL(sourceURL)).toString();
 }
 
 async function findImportedArticle(sourceURL: string) {
@@ -161,28 +107,72 @@ async function findImportedArticle(sourceURL: string) {
 		: null;
 }
 
-async function generateImportedDraft(article: ExtractedArticle) {
+function hasSourceEvidence(
+	toolResults: ReadonlyArray<{ toolName: string; output: unknown }>,
+) {
+	return toolResults.some(
+		(toolResult) =>
+			(toolResult.toolName === "web_fetch" &&
+				typeof toolResult.output === "object" &&
+				toolResult.output !== null &&
+				"type" in toolResult.output &&
+				toolResult.output.type === "web_fetch_result") ||
+			(toolResult.toolName === "web_search" &&
+				Array.isArray(toolResult.output) &&
+				toolResult.output.length > 0),
+	);
+}
+
+async function generateImportedDraft(sourceURL: string) {
 	"use step";
 	const result = await generateText({
 		model,
 		output: Output.object({ schema: generatedArticleSchema }),
-		prompt: `Create an Overture editorial draft from the source below.
+		providerOptions: {
+			gateway: { only: ["anthropic"] },
+		},
+		tools: {
+			web_fetch: anthropic.tools.webFetch_20260209({ maxUses: 1 }),
+			web_search: anthropic.tools.webSearch_20260209({ maxUses: 3 }),
+		},
+		prepareStep: ({ stepNumber, steps }) => {
+			if (stepNumber === 0) {
+				return {
+						activeTools: ["web_fetch"],
+						toolChoice: { type: "tool", toolName: "web_fetch" },
+					};
+			}
+			if (
+				stepNumber === 1 &&
+				!hasSourceEvidence(steps.flatMap((step) => step.toolResults))
+			) {
+				return {
+					activeTools: ["web_search"],
+					toolChoice: { type: "tool", toolName: "web_search" },
+				};
+			}
+			return { activeTools: ["web_search"] };
+		},
+		stopWhen: isStepCount(6),
+		prompt: `Fetch the article at this exact URL, then create an Overture editorial draft from it:
+${sourceURL}
 
 Rules:
+- Use the submitted article as the primary source. If fetching it fails, search for the exact article before drafting.
+- You may search for reliable reporting and primary sources to corroborate the article or add useful background about its subject.
+- Clearly attribute facts that come from sources other than the submitted article. Never blur reporting from different sources together.
 - Preserve the source's facts, uncertainty, numbers, names, caveats, and attribution. Do not add facts.
 - The full version should be a clean, original synthesis, split into 2-8 coherent sections.
 - Glance is one concise paragraph per section. Brief is longer. Standard retains most important detail. Full is most complete.
 - Keep direct quotes out unless absolutely necessary; never fabricate quotations.
-- Use the source byline exactly when it is present. Return null when it is absent.
+- Use the article's byline exactly when it is available. Return null when it is unavailable.
 - This is a draft for human review, never finished or published copy.
-
-Source URL: ${article.sourceURL}
-Source title: ${article.title}
-Source byline: ${article.byline ?? "Not provided"}
-Source excerpt: ${article.excerpt ?? "Not provided"}
-Source text:
-${article.text}`,
+- If neither the article nor reliable reporting about it can be found, do not infer its contents.`,
 	});
+	if (!hasSourceEvidence(result.steps.flatMap((step) => step.toolResults)))
+		throw new FatalError(
+			"Claude could not fetch the article or find reliable source material.",
+		);
 	return result.output;
 }
 
@@ -262,7 +252,7 @@ function variantGroup(
 }
 
 async function saveImportedDraft(
-	article: ExtractedArticle,
+	sourceURL: string,
 	generated: z.infer<typeof generatedArticleSchema>,
 	requestedBy: string,
 ) {
@@ -280,7 +270,7 @@ async function saveImportedDraft(
 			title: generated.title,
 			slug: `${slugify(generated.title)}-${Date.now().toString(36)}`,
 			dek: generated.dek,
-			byline: article.byline ?? generated.byline ?? "Overture Editorial",
+			byline: generated.byline ?? "Overture Editorial",
 			category: generated.category,
 			estimatedReadingMinutes: Math.max(
 				1,
@@ -291,7 +281,7 @@ async function saveImportedDraft(
 					) / 220,
 				),
 			),
-			sourceURL: article.sourceURL,
+			sourceURL,
 			importedAt: new Date().toISOString(),
 			importedBy: requestedBy,
 			body: aligned.map((section, index) =>
@@ -304,7 +294,11 @@ async function saveImportedDraft(
 			},
 			variantGeneration: {
 				status: "needs-review",
-				sourceHash: createHash("sha256").update(article.text).digest("hex"),
+				sourceHash: createHash("sha256")
+					.update(
+						generated.sections.map((section) => section.full).join("\n\n"),
+					)
+					.digest("hex"),
 				model,
 				generatedAt: new Date().toISOString(),
 			},
@@ -469,12 +463,12 @@ async function markGenerationFailed(
 
 export async function importArticleWorkflow(input: ArticleImportInput) {
 	"use workflow";
-	const source = await extractArticle(input.sourceURL);
-	const existing = await findImportedArticle(source.sourceURL);
+	const sourceURL = await validateArticleURL(input.sourceURL);
+	const existing = await findImportedArticle(sourceURL);
 	if (existing) return { ...existing, alreadyImported: true };
-	const generated = await generateImportedDraft(source);
+	const generated = await generateImportedDraft(sourceURL);
 	return {
-		...(await saveImportedDraft(source, generated, input.requestedBy)),
+		...(await saveImportedDraft(sourceURL, generated, input.requestedBy)),
 		alreadyImported: false,
 	};
 }
