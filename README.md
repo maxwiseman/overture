@@ -10,6 +10,12 @@ The content flow is `Payload -> /api/publication -> website and SwiftUI`. Public
 can only read published Payload documents; editors authenticated in Payload can still
 read drafts.
 
+## Prerequisites
+
+- Bun `1.3.11` (matches `packageManager` in the workspace root).
+- PostgreSQL database reachable by both the CMS and web app.
+- Xcode (only needed when building the iOS app locally).
+
 ## Local setup
 
 1. Install dependencies with `bun install`.
@@ -86,7 +92,9 @@ the website as a development fallback.
 - `bun run cms:migrate:create` / `bun run cms:migrate`: create or apply CMS migrations.
 - `bun run cms:seed`: create or refresh the published starter edition.
 - `bun run db:push`: update a development database directly.
+- `bun run db:studio`: open Drizzle Studio for the auth schema.
 - `bun run db:generate` / `bun run db:migrate`: create and apply release auth migrations.
+- `bun run check`: run Biome formatting and lint checks.
 - `bun run check-types`: typecheck all TypeScript apps.
 - `bun run build`: build the CMS and website.
 
