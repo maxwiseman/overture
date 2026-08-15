@@ -44,7 +44,7 @@ export default function Header() {
         </div>
       </div>
       {searchOpen ? (
-        <form id="site-search" className="absolute inset-x-0 top-[88px] z-2 flex min-h-[74px] items-center gap-4 border-t border-white/12 bg-[rgb(4_10_18_/_0.82)] px-[max(42px,calc((100vw-1440px)/2+42px))] backdrop-blur-[24px] max-[800px]:top-[72px] max-[800px]:px-5" action="/" role="search">
+        <form id="site-search" className="absolute inset-x-0 top-[88px] z-2 flex min-h-[74px] items-center gap-4 border-t border-white/12 bg-[rgb(4_10_18_/_0.82)] px-[max(42px,calc((100vw-1440px)/2+42px))] backdrop-blur-[24px] max-[800px]:top-[72px] max-[800px]:px-5" action="/search" role="search">
           <Search aria-hidden="true" size={20} />
           <label className="sr-only" htmlFor="search-query">Search stories</label>
           <input className="flex-1 border-0 bg-transparent text-[1.1rem] text-white outline-0" id="search-query" name="q" type="search" autoFocus placeholder="Search this issue" />
