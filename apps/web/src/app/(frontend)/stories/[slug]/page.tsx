@@ -5,11 +5,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { getStory, storyImage } from "@/lib/publication";
+import { getCurrentEdition, getStory, storyImage } from "@/lib/publication";
 
 type StoryPageProps = { params: Promise<{ slug: string }> };
 
 export const instant = true;
+
+export async function generateStaticParams() {
+  const edition = await getCurrentEdition();
+
+  if (!edition || edition.stories.length === 0) {
+    throw new Error("At least one published story is required to generate story routes");
+  }
+
+  return edition.stories.map((story) => ({ slug: story.slug }));
+}
 
 export async function generateMetadata({ params }: StoryPageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -63,7 +73,7 @@ async function StoryContent({ params }: StoryPageProps) {
         </div>
       </header>
       <article className="mx-auto max-w-[740px] px-8 pt-[76px] pb-[130px] [&_section+section]:mt-[42px] [&_section_h2]:[font-family:Georgia,'Times_New_Roman',serif] [&_section_h2]:text-[2.2rem] [&_section_h2]:font-normal [&_section_p]:m-0 [&_section_p]:[font-family:Georgia,'Times_New_Roman',serif] [&_section_p]:text-[clamp(1.35rem,2vw,1.65rem)] [&_section_p]:leading-[1.65] [&_section_p]:text-[#22211f]">
-        <Link className="mb-[68px] flex items-center gap-2 text-[0.88rem] text-[#2d6bd1]" href="/" prefetch>
+        <Link className="mb-[68px] flex items-center gap-2 text-[0.88rem] text-[#2d6bd1]" href="/">
           <ArrowLeft size={18} /> Today’s issue
         </Link>
         {story.sections.map((section) => (

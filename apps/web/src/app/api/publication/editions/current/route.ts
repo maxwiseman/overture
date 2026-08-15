@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 
 import { getCurrentEdition } from "@/lib/publication";
 
-export const dynamic = "force-dynamic";
-
 export async function GET() {
   try {
     const edition = await getCurrentEdition();

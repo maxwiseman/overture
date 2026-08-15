@@ -1,3 +1,9 @@
+import config from "@payload-config";
+import { cacheLife, cacheTag } from "next/cache";
+import { getPayload } from "payload";
+
+import type { Article, Media } from "@/cms/payload-types";
+
 export type PublicationSection = {
   id: string;
   heading: string | null;
@@ -52,85 +58,33 @@ export function storyImage(
   return story.heroImageURL ?? localStoryImages[story.slug]?.[orientation] ?? null;
 }
 
-type PayloadMedia = {
-  url?: string | null;
-  sizes?: { article?: { url?: string | null } | null } | null;
-};
+type PayloadBlock = Article["body"][number];
+type PayloadVariants = Article["variants"];
 
-type LexicalNode = {
-  text?: string;
-  children?: LexicalNode[];
-};
-
-type PayloadBlock = {
-  id?: string | null;
-  blockName?: string | null;
-  heading?: string | null;
-  blockType?: string;
-  content?: { root?: LexicalNode } | null;
-  quote?: string | null;
-  attribution?: string | null;
-  caption?: string | null;
-};
-
-type PayloadVariantSection = {
-  sourceSectionID: string;
-  heading?: string | null;
-  body: string;
-};
-
-type PayloadVariant = { sections?: PayloadVariantSection[] | null };
-
-type PayloadVariants = {
-  glance?: PayloadVariant | null;
-  brief?: PayloadVariant | null;
-  standard?: PayloadVariant | null;
-};
-
-type PayloadArticle = {
-  id: string | number;
-  slug: string;
-  title: string;
-  dek?: string | null;
-  byline: string;
-  category?: string | null;
-  estimatedReadingMinutes?: number | null;
-  publishedAt?: string | null;
-  heroImage?: PayloadMedia | string | number | null;
-  body?: PayloadBlock[] | null;
-  variants?: PayloadVariants | null;
-};
-
-type PayloadEdition = {
-  id: string | number;
-  slug: string;
-  title: string;
-  description?: string | null;
-  releaseDate: string;
-  articles?: Array<PayloadArticle | string | number> | null;
-};
-
-type PayloadList<T> = { docs: T[] };
-
-function payloadBaseURL() {
-  return (process.env.PAYLOAD_URL ?? "http://localhost:3002").replace(/\/$/, "");
+function publicationBaseURL() {
+  const vercelProductionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  return (
+    process.env.BETTER_AUTH_URL ??
+    (vercelProductionHost ? `https://${vercelProductionHost}` : "http://localhost:3001")
+  ).replace(/\/$/, "");
 }
 
 function absoluteMediaURL(pathname: string | null | undefined) {
   if (!pathname) return null;
-  return new URL(pathname, `${payloadBaseURL()}/`).toString();
+  return new URL(pathname, `${publicationBaseURL()}/`).toString();
 }
 
-function lexicalText(node: LexicalNode | undefined): string {
-  if (!node) return "";
-  const ownText = node.text ?? "";
-  const childText = node.children?.map(lexicalText).filter(Boolean).join(" ") ?? "";
+function lexicalText(node: unknown): string {
+  if (!node || typeof node !== "object") return "";
+  const value = node as { text?: unknown; children?: unknown[] };
+  const ownText = typeof value.text === "string" ? value.text : "";
+  const childText = value.children?.map(lexicalText).filter(Boolean).join(" ") ?? "";
   return [ownText, childText].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
 }
 
 function normalizeSections(
   blocks: PayloadBlock[] | null | undefined,
-  variants: PayloadVariants | null | undefined,
+  variants: PayloadVariants,
 ): PublicationSection[] {
   const variantMaps = {
     glance: new Map((variants?.glance?.sections ?? []).map((section) => [section.sourceSectionID, section])),
@@ -164,8 +118,9 @@ function normalizeSections(
   });
 }
 
-function normalizeArticle(article: PayloadArticle): PublicationStory {
-  const media = typeof article.heroImage === "object" ? article.heroImage : null;
+function normalizeArticle(article: Article): PublicationStory {
+  const media: Media | null =
+    typeof article.heroImage === "object" && article.heroImage !== null ? article.heroImage : null;
   const mediaPath = media?.sizes?.article?.url ?? media?.url;
 
   return {
@@ -185,28 +140,25 @@ function normalizeArticle(article: PayloadArticle): PublicationStory {
 export async function getCurrentEdition(): Promise<PublicationEdition | null> {
   "use cache";
 
-  cacheLife("hours");
+  cacheLife("max");
   cacheTag("publication");
 
-  const query = new URLSearchParams({
-    depth: "2",
-    limit: "1",
+  const payload = await getPayload({ config });
+  const { docs } = await payload.find({
+    collection: "editions",
+    depth: 2,
+    limit: 1,
     sort: "-releaseDate",
+    overrideAccess: false,
+    where: {
+      _status: { equals: "published" },
+    },
   });
-  const response = await fetch(`${payloadBaseURL()}/api/editions?${query}`, {
-    headers: { Accept: "application/json" },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Payload returned ${response.status}`);
-  }
-
-  const data = (await response.json()) as PayloadList<PayloadEdition>;
-  const edition = data.docs[0];
+  const edition = docs[0];
   if (!edition) return null;
 
-  const articles = (edition.articles ?? []).filter(
-    (article): article is PayloadArticle => typeof article === "object",
+  const articles = edition.articles.filter(
+    (article): article is Article => typeof article === "object",
   );
 
   return {
@@ -223,4 +175,3 @@ export async function getStory(slug: string): Promise<PublicationStory | null> {
   const edition = await getCurrentEdition();
   return edition?.stories.find((story) => story.slug === slug) ?? null;
 }
-import { cacheLife, cacheTag } from "next/cache";
