@@ -33,6 +33,7 @@ private struct PublicationStory: Decodable {
     var story: Story {
         Story(
             id: id,
+            slug: slug,
             title: title,
             deck: deck,
             readTime: "\(readTimeMinutes) min read",

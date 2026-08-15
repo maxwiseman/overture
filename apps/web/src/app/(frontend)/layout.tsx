@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://maxw.news"),
   title: {
     default: "Overture",
     template: "%s — Overture",

@@ -8,18 +8,29 @@ enum AppTab: Hashable {
 }
 
 struct AppView: View {
+    @Environment(NewsStore.self) private var store
     @State private var selectedTab: AppTab = .home
     @State private var homePath = NavigationPath()
     @State private var explorePath = NavigationPath()
     @State private var savedPath = NavigationPath()
     @State private var articleReading = ArticleReadingState()
+    @State private var pendingArticleSlug: String?
 
     var body: some View {
         configuredTabView
             .environment(articleReading)
             .preferredColorScheme(activeColorScheme)
+            .task {
+                await store.loadPublication()
+                openPendingArticleIfAvailable()
+            }
             .task(priority: .utility) {
                 await RocketModelView.prewarmCommonModel()
+            }
+            .onOpenURL { url in
+                guard let slug = OvertureEnvironment.articleSlug(from: url) else { return }
+                pendingArticleSlug = slug
+                openPendingArticleIfAvailable()
             }
     }
 
@@ -79,6 +90,18 @@ struct AppView: View {
         case .explore, .saved, .launches:
             nil
         }
+    }
+
+    private func openPendingArticleIfAvailable() {
+        guard
+            let pendingArticleSlug,
+            let story = store.stories.first(where: { $0.slug == pendingArticleSlug })
+        else { return }
+
+        self.pendingArticleSlug = nil
+        selectedTab = .home
+        homePath = NavigationPath()
+        homePath.append(story)
     }
 }
 

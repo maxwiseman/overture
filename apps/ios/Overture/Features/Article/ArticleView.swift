@@ -82,7 +82,7 @@ struct ArticleView: View {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 readingDepthMenu
 
-                ShareLink(item: story.title, subject: Text(story.title), message: Text(story.deck))
+                ShareLink(item: OvertureEnvironment.articleURL(slug: story.slug))
                     .tint(.primary)
                     .accessibilityLabel("Share article")
             }

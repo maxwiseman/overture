@@ -24,7 +24,29 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: StoryPageProps): Promise<Metadata> {
   const { slug } = await params;
   const story = await getStory(slug).catch(() => null);
-  return story ? { title: story.title, description: story.deck } : {};
+  if (!story) return {};
+
+  const path = `/stories/${story.slug}`;
+
+  return {
+    title: story.title,
+    description: story.deck,
+    alternates: {
+      canonical: path,
+    },
+    openGraph: {
+      type: "article",
+      url: path,
+      siteName: "Overture",
+      title: story.title,
+      description: story.deck,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: story.title,
+      description: story.deck,
+    },
+  };
 }
 
 export default function StoryPage({ params }: StoryPageProps) {

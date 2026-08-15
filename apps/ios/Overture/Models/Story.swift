@@ -2,6 +2,7 @@ import Foundation
 
 struct Story: Identifiable, Hashable {
     let id: String
+    let slug: String
     let title: String
     let deck: String
     let readTime: String
@@ -14,6 +15,7 @@ struct Story: Identifiable, Hashable {
 
     init(
         id: String,
+        slug: String? = nil,
         title: String,
         deck: String,
         readTime: String,
@@ -25,6 +27,7 @@ struct Story: Identifiable, Hashable {
         sections: [ArticleSection] = []
     ) {
         self.id = id
+        self.slug = slug ?? id
         self.title = title
         self.deck = deck
         self.readTime = readTime

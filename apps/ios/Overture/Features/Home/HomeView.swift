@@ -15,9 +15,6 @@ struct HomeView: View {
                     .presentationDragIndicator(.hidden)
                     .interactiveDismissDisabled(false)
             }
-            .task {
-                await store.loadPublication()
-            }
     }
 
     @ViewBuilder
