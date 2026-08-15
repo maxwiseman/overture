@@ -23,6 +23,7 @@ export default buildConfig({
 	},
 	collections: [Users, Media, Articles, Editions],
 	db: postgresAdapter({
+		migrationDir: path.resolve(dirname, "migrations"),
 		schemaName: "payload",
 		pool: {
 			connectionString: process.env.DATABASE_URL || "",

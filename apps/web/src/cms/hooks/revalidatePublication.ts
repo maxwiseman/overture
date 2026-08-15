@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from "payload";
 
 type PublishableDocument = {
@@ -5,26 +6,11 @@ type PublishableDocument = {
 };
 
 async function revalidatePublication(logger: { warn: (message: string) => void }) {
-	const webURL = process.env.OVERTURE_WEB_URL;
-	const secret = process.env.PUBLICATION_REVALIDATE_SECRET;
-
-	if (!webURL || !secret) return;
-
 	try {
-		const response = await fetch(new URL("/api/publication/revalidate", webURL), {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${secret}`,
-			},
-			signal: AbortSignal.timeout(5_000),
-		});
-
-		if (!response.ok) {
-			logger.warn(`Publication cache revalidation returned ${response.status}.`);
-		}
+		revalidateTag("publication", { expire: 0 });
 	} catch (error) {
 		logger.warn(
-			`Publication cache revalidation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+			`Publication cache revalidation was unavailable: ${error instanceof Error ? error.message : "Unknown error"}`,
 		);
 	}
 }

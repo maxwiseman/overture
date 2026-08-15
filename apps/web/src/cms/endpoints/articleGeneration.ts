@@ -12,14 +12,6 @@ const importSchema = z.object({
 	requestedBy: z.string().email(),
 });
 
-function isTrustedInternalRequest(req: PayloadRequest) {
-	const configuredSecret = process.env.ARTICLE_INGEST_SECRET;
-	return Boolean(
-		configuredSecret &&
-			req.headers.get("x-overture-ingest-secret") === configuredSecret,
-	);
-}
-
 async function requestJSON(req: PayloadRequest) {
 	try {
 		if (!req.json) return null;
@@ -34,7 +26,7 @@ export const articleGenerationEndpoints: Endpoint[] = [
 		path: "/import",
 		method: "post",
 		handler: async (req) => {
-			if (!req.user && !isTrustedInternalRequest(req)) {
+			if (!req.user) {
 				return Response.json({ message: "Unauthorized" }, { status: 401 });
 			}
 

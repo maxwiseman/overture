@@ -93,7 +93,6 @@ async function PublicationHome({ searchParams }: { searchParams: HomeSearchParam
                   <Link
                     className="[font-family:Georgia,'Times_New_Roman',serif] text-base leading-[1.15] text-white"
                     href={storyHref(story.slug)}
-                    prefetch
                   >
                     {story.title}
                   </Link>
@@ -184,7 +183,6 @@ function StoriesSection({ edition, query }: { edition: PublicationEdition; query
               <Link
                 className="relative min-h-[310px] overflow-hidden bg-[#d9d7d0] max-[800px]:min-h-[300px]"
                 href={storyHref(story.slug)}
-                prefetch
               >
                 {image ? (
                   <Image
@@ -220,7 +218,6 @@ function StoriesSection({ edition, query }: { edition: PublicationEdition; query
       <Link
         className="mt-9 ml-auto flex w-max items-center gap-[9px] text-[#2d6bd1] max-[800px]:ml-0"
         href={storyHref(lead.slug)}
-        prefetch
       >
         Begin with today’s lead <ArrowRight size={18} aria-hidden="true" />
       </Link>
