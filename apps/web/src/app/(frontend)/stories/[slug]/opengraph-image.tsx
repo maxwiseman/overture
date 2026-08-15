@@ -19,7 +19,8 @@ type OpenGraphImageProps = {
 async function imageSource(path: string) {
 	if (path.startsWith("/")) {
 		const image = await readFile(join(process.cwd(), "public", path));
-		return `data:image/png;base64,${image.toString("base64")}`;
+		const contentType = path.endsWith(".svg") ? "image/svg+xml" : "image/png";
+		return `data:${contentType};base64,${image.toString("base64")}`;
 	}
 
 	const response = await fetch(path);
@@ -36,7 +37,10 @@ export default async function OpenGraphImage({ params }: OpenGraphImageProps) {
 	if (!story) notFound();
 
 	const heroImage = storyImage(story);
-	const heroSource = heroImage ? await imageSource(heroImage) : null;
+	const [heroSource, wordmarkSource] = await Promise.all([
+		heroImage ? imageSource(heroImage) : null,
+		imageSource("/images/overture-wordmark.svg"),
+	]);
 	const titleSize = story.title.length > 54 ? 66 : 78;
 
 	return new ImageResponse(
@@ -90,31 +94,16 @@ export default async function OpenGraphImage({ params }: OpenGraphImageProps) {
 					justifyContent: "space-between",
 				}}
 			>
-				<div
-					style={{
-						display: "flex",
-						fontSize: 25,
-						letterSpacing: "0.08em",
-						fontWeight: 650,
-					}}
-				>
-					Overture
-				</div>
+				{/* biome-ignore lint/performance/noImgElement: ImageResponse renders this outside the browser. */}
+				<img
+					src={wordmarkSource}
+					alt="Overture"
+					width={145}
+					height={45}
+					style={{ objectFit: "contain" }}
+				/>
 
 				<div style={{ display: "flex", flexDirection: "column" }}>
-					<div
-						style={{
-							display: "flex",
-							color: "#78a6ff",
-							fontSize: 18,
-							fontWeight: 700,
-							letterSpacing: "0.16em",
-							textTransform: "uppercase",
-							marginBottom: 18,
-						}}
-					>
-						{story.category}
-					</div>
 					<div
 						style={{
 							display: "flex",

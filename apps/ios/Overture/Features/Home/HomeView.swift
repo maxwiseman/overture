@@ -487,7 +487,7 @@ struct StoryImage: View {
     var fallbackName: String? = nil
 
     var body: some View {
-        if let imageURL = story.imageURL {
+        if let imageURL = story.mobileImageURL ?? story.imageURL {
             AsyncImage(url: imageURL) { phase in
                 switch phase {
                 case .success(let image):
@@ -496,6 +496,7 @@ struct StoryImage: View {
                     fallbackImage
                 }
             }
+            .accessibilityLabel(story.imageAlt ?? "Article image")
         } else {
             fallbackImage
         }

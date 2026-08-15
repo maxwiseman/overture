@@ -28,6 +28,9 @@ private struct PublicationStory: Decodable {
     let readTimeMinutes: Int
     let publishedAt: Date?
     let heroImageURL: URL?
+    let heroImageMobileURL: URL?
+    let heroImageAlt: String?
+    let heroImageCredit: String?
     let sections: [PublicationSection]
 
     var story: Story {
@@ -40,6 +43,9 @@ private struct PublicationStory: Decodable {
             category: category,
             imageName: fallbackImageName,
             imageURL: heroImageURL,
+            mobileImageURL: heroImageMobileURL,
+            imageAlt: heroImageAlt,
+            imageCredit: heroImageCredit,
             byline: byline,
             publishedAt: publishedAt,
             sections: sections.map(\.articleSection)
@@ -57,16 +63,29 @@ private struct PublicationStory: Decodable {
 
 private struct PublicationSection: Decodable {
     let id: String
+    let kind: String?
     let heading: String?
     let body: String
     let glance: String?
     let brief: String?
     let standard: String?
     let full: String?
+    let imageURL: URL?
+    let imageAlt: String?
+    let imageCaption: String?
+    let imageCredit: String?
 
     var articleSection: ArticleSection {
         ArticleSection(
             id: id,
+            image: imageURL.map {
+                ArticleImage(
+                    url: $0,
+                    alt: imageAlt,
+                    caption: imageCaption,
+                    credit: imageCredit
+                )
+            },
             heading: heading,
             glance: glance ?? body,
             brief: brief ?? body,

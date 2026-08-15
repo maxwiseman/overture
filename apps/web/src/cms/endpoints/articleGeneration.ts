@@ -9,7 +9,6 @@ import {
 
 const importSchema = z.object({
 	sourceURL: z.url(),
-	requestedBy: z.string().email(),
 });
 
 async function requestJSON(req: PayloadRequest) {
@@ -33,12 +32,14 @@ export const articleGenerationEndpoints: Endpoint[] = [
 			const parsed = importSchema.safeParse(await requestJSON(req));
 			if (!parsed.success) {
 				return Response.json(
-					{ message: "A valid article URL and editor email are required." },
+					{ message: "A valid article URL is required." },
 					{ status: 400 },
 				);
 			}
 
-			const run = await start(importArticleWorkflow, [parsed.data]);
+			const run = await start(importArticleWorkflow, [
+				{ sourceURL: parsed.data.sourceURL, requestedBy: req.user.email },
+			]);
 			return Response.json(
 				{ runID: run.runId, status: "generating" },
 				{ status: 202 },

@@ -88,7 +88,7 @@ struct RocketCardModelView: View {
                     .scaledToFit()
                     .accessibilityHidden(true)
             } else {
-                ZStack {
+                Group {
                     if ownsRenderer {
                         RocketPerspectiveView(
                             sceneName: asset.sceneName,
@@ -101,9 +101,10 @@ struct RocketCardModelView: View {
                                 ownsRenderer = false
                             }
                         )
+                        .opacity(0)
+                    } else {
+                        Color.clear
                     }
-
-                    RocketArtwork(vehicle: vehicle)
                 }
                 .onAppear {
                     ownsRenderer = snapshotStore.claimRenderer(for: asset.sceneName)
@@ -116,7 +117,7 @@ struct RocketCardModelView: View {
                 .accessibilityHidden(true)
             }
         } else {
-            RocketArtwork(vehicle: vehicle)
+            Color.clear
                 .accessibilityHidden(true)
         }
     }
@@ -162,6 +163,7 @@ private struct RocketLivePerspectiveView: UIViewRepresentable {
         view.accessibilityLabel = "Interactive 3D rocket model"
         view.accessibilityHint = "Drag horizontally to spin the rocket. In compact mode, drag vertically to tilt it."
         context.coordinator.installGestures(on: view)
+        context.coordinator.applyFraming(to: view, isCentered: isCentered)
         context.coordinator.loadTask = Task { @MainActor [weak view] in
             guard let view else { return }
             guard let cameraRig = try? await installRocketScene(
@@ -170,7 +172,7 @@ private struct RocketLivePerspectiveView: UIViewRepresentable {
                 in: view
             ) else { return }
             context.coordinator.cameraRig = cameraRig
-            context.coordinator.applyFraming(to: view, isCentered: isCentered)
+            context.coordinator.applyPendingFraming(to: view)
         }
         return view
     }
@@ -192,6 +194,7 @@ private struct RocketLivePerspectiveView: UIViewRepresentable {
         var inertiaTask: Task<Void, Never>?
         var cameraRig: RocketCameraRig?
         private var appliedCenteredState: Bool?
+        private var requestedCenteredState = false
         private var installedGestures: [UIGestureRecognizer] = []
         private var allowsPitch = false
         private var yaw: Float = 0
@@ -241,6 +244,12 @@ private struct RocketLivePerspectiveView: UIViewRepresentable {
         }
 
         func applyFraming(to view: ARView, isCentered: Bool) {
+            requestedCenteredState = isCentered
+            applyPendingFraming(to: view)
+        }
+
+        func applyPendingFraming(to view: ARView) {
+            let isCentered = requestedCenteredState
             guard appliedCenteredState != isCentered, let cameraRig else { return }
             let shouldAnimate = appliedCenteredState != nil
             let wasCentered = appliedCenteredState == true

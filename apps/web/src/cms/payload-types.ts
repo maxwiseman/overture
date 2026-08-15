@@ -162,6 +162,25 @@ export interface Media {
   id: number;
   alt: string;
   caption?: string | null;
+  /**
+   * Visible creator, agency, or publication credit. Keep this separate from accessibility alt text.
+   */
+  credit?: string | null;
+  /**
+   * Page where the original or reference image was found.
+   */
+  sourceURL?: string | null;
+  /**
+   * Required before an externally sourced image can be published (for example, Public Domain or CC BY 4.0).
+   */
+  licenseName?: string | null;
+  licenseURL?: string | null;
+  generatedByAI?: boolean | null;
+  generationPrompt?: string | null;
+  /**
+   * Factual visual reference supplied to the image model. This is provenance, not a republication license.
+   */
+  referenceImageURL?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -190,6 +209,22 @@ export interface Media {
       filesize?: number | null;
       filename?: string | null;
     };
+    heroDesktop?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    heroMobile?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
   };
 }
 /**
@@ -205,6 +240,21 @@ export interface Article {
   category: string;
   estimatedReadingMinutes: number;
   heroImage?: (number | null) | Media;
+  /**
+   * A deliberately reframed portrait asset. Falls back to the desktop hero when empty.
+   */
+  heroImageMobile?: (number | null) | Media;
+  /**
+   * The desktop alternatives considered by the visual agent. heroImage is its selected candidate.
+   */
+  heroImageCandidates?: (number | Media)[] | null;
+  visualGeneration?: {
+    status?: ('generating' | 'needs-review' | 'approved' | 'skipped' | 'failed') | null;
+    model?: string | null;
+    selectedCandidate?: number | null;
+    generatedAt?: string | null;
+    lastError?: string | null;
+  };
   publishedAt?: string | null;
   /**
    * Original URL for an article imported through the Overture share extension.
@@ -237,6 +287,10 @@ export interface Article {
     | {
         image: number | Media;
         caption?: string | null;
+        /**
+         * Optional placement-specific credit override.
+         */
+        credit?: string | null;
         id?: string | null;
         blockName?: string | null;
         blockType: 'image';
@@ -539,6 +593,13 @@ export interface UsersSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
+  credit?: T;
+  sourceURL?: T;
+  licenseName?: T;
+  licenseURL?: T;
+  generatedByAI?: T;
+  generationPrompt?: T;
+  referenceImageURL?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -573,6 +634,26 @@ export interface MediaSelect<T extends boolean = true> {
               filesize?: T;
               filename?: T;
             };
+        heroDesktop?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        heroMobile?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
       };
 }
 /**
@@ -587,6 +668,17 @@ export interface ArticlesSelect<T extends boolean = true> {
   category?: T;
   estimatedReadingMinutes?: T;
   heroImage?: T;
+  heroImageMobile?: T;
+  heroImageCandidates?: T;
+  visualGeneration?:
+    | T
+    | {
+        status?: T;
+        model?: T;
+        selectedCandidate?: T;
+        generatedAt?: T;
+        lastError?: T;
+      };
   publishedAt?: T;
   sourceURL?: T;
   importedAt?: T;
@@ -607,6 +699,7 @@ export interface ArticlesSelect<T extends boolean = true> {
           | {
               image?: T;
               caption?: T;
+              credit?: T;
               id?: T;
               blockName?: T;
             };

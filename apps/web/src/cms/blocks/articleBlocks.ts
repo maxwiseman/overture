@@ -28,6 +28,13 @@ export const ImageBlock: Block = {
 			name: "caption",
 			type: "text",
 		},
+		{
+			name: "credit",
+			type: "text",
+			admin: {
+				description: "Optional placement-specific credit override.",
+			},
+		},
 	],
 };
 

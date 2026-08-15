@@ -20,6 +20,15 @@ struct ArticleView: View {
                     overscroll: heroOverscroll
                 )
 
+                if let credit = story.imageCredit {
+                    Text(credit)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
+                }
+
                 VStack(alignment: .leading, spacing: 0) {
                     Text(story.title)
                         .font(OvertureTheme.editorial(51))
@@ -204,26 +213,49 @@ private struct ArticleSectionView: View {
     let depth: ReadingDepth
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if let heading = section.heading {
-                Text(heading)
-                    .font(OvertureTheme.editorial(32, weight: .semibold))
-                    .tracking(-0.5)
-                    .padding(.top, 36)
-            }
+        if let image = section.image {
+            VStack(alignment: .leading, spacing: 10) {
+                AsyncImage(url: image.url) { phase in
+                    switch phase {
+                    case .success(let loadedImage):
+                        loadedImage.resizable().scaledToFill()
+                    default:
+                        Rectangle().fill(Color(.secondarySystemBackground))
+                    }
+                }
+                .aspectRatio(3 / 2, contentMode: .fill)
+                .clipShape(.rect(cornerRadius: 14))
+                .accessibilityLabel(image.alt ?? "Article image")
 
-            Text(section.text(at: depth))
-                .id("\(section.id)-\(depth.rawValue)")
-                .font(OvertureTheme.editorial(section.heading == nil ? 23 : 21))
-                .lineSpacing(8)
-                .padding(.top, section.heading == nil ? 28 : 20)
-                .textSelection(.enabled)
-                .transition(
-                    .asymmetric(
-                        insertion: .opacity.combined(with: .offset(y: 8)),
-                        removal: .opacity
+                if image.caption != nil || image.credit != nil {
+                    Text([image.caption, image.credit].compactMap { $0 }.joined(separator: " · "))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.vertical, 30)
+        } else {
+            VStack(alignment: .leading, spacing: 0) {
+                if let heading = section.heading {
+                    Text(heading)
+                        .font(OvertureTheme.editorial(32, weight: .semibold))
+                        .tracking(-0.5)
+                        .padding(.top, 36)
+                }
+
+                Text(section.text(at: depth))
+                    .id("\(section.id)-\(depth.rawValue)")
+                    .font(OvertureTheme.editorial(section.heading == nil ? 23 : 21))
+                    .lineSpacing(8)
+                    .padding(.top, section.heading == nil ? 28 : 20)
+                    .textSelection(.enabled)
+                    .transition(
+                        .asymmetric(
+                            insertion: .opacity.combined(with: .offset(y: 8)),
+                            removal: .opacity
+                        )
                     )
-                )
+            }
         }
     }
 }

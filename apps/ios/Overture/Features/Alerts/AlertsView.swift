@@ -35,7 +35,7 @@ struct LaunchesView: View {
     private var content: some View {
         switch launchState {
         case .loading:
-            launchList(RocketLaunch.placeholderLaunches)
+            launchList(RocketLaunch.placeholderLaunches, showsModels: false)
                 .redacted(reason: .placeholder)
                 .allowsHitTesting(false)
         case .loaded(let schedule):
@@ -62,11 +62,17 @@ struct LaunchesView: View {
                 .disabled(isFetching)
             }
 
-            launchList(RocketLaunch.placeholderLaunches)
+            launchList(RocketLaunch.placeholderLaunches, showsModels: false)
+                .redacted(reason: .placeholder)
+                .allowsHitTesting(false)
         }
     }
 
-    private func launchList(_ launches: [RocketLaunch], nextOffset: Int? = nil) -> some View {
+    private func launchList(
+        _ launches: [RocketLaunch],
+        nextOffset: Int? = nil,
+        showsModels: Bool = true
+    ) -> some View {
         let supportedLaunches = launches.filter {
             RocketModelView.supports(vehicle: $0.vehicle, spacecraft: $0.spacecraft)
         }
@@ -77,7 +83,7 @@ struct LaunchesView: View {
                     LaunchSectionHeader(title: "Next launch")
 
                     NavigationLink(value: nextLaunch) {
-                        LaunchCard(launch: nextLaunch, isNext: true)
+                        LaunchCard(launch: nextLaunch, isNext: true, showsModel: showsModels)
                             .matchedTransitionSource(id: nextLaunch.id, in: launchNamespace)
                     }
                     .buttonStyle(.plain)
@@ -97,7 +103,7 @@ struct LaunchesView: View {
                     LazyVStack(spacing: 16) {
                         ForEach(supportedLaunches.dropFirst()) { launch in
                             NavigationLink(value: launch) {
-                                LaunchCard(launch: launch)
+                                LaunchCard(launch: launch, showsModel: showsModels)
                                     .matchedTransitionSource(id: launch.id, in: launchNamespace)
                             }
                             .buttonStyle(.plain)
@@ -263,13 +269,14 @@ private struct LaunchSectionHeader: View {
 private struct LaunchCard: View {
     let launch: RocketLaunch
     var isNext = false
+    var showsModel = true
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             Color(.secondarySystemBackground)
 
-            if !dynamicTypeSize.isAccessibilitySize {
+            if showsModel && !dynamicTypeSize.isAccessibilitySize {
                 RocketCardModelView(vehicle: launch.vehicle, spacecraft: launch.spacecraft)
                     .frame(width: 150, height: 320)
                     .padding(.trailing, -8)
@@ -289,7 +296,7 @@ private struct LaunchCard: View {
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 7)
-                .background(.ultraThinMaterial, in: Capsule())
+                .background(.regularMaterial, in: Capsule())
 
                 Spacer(minLength: 34)
 
@@ -305,7 +312,7 @@ private struct LaunchCard: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 6)
 
-                Text("\(launch.provider)  ·  \(launch.vehicle)")
+                Text("\(launch.provider)  ·  \(launch.displayVehicle)")
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
@@ -331,24 +338,69 @@ private struct LaunchCard: View {
 
 private struct LaunchCountdown: View {
     let date: Date
+    var style: Style = .dark
+    var showsClock = true
+    var allowsDateToggle = false
+    @State private var showsLaunchDate = false
+
+    enum Style {
+        case dark
+        case glass
+    }
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
-            HStack(spacing: 8) {
+            if allowsDateToggle {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.12)) {
+                        showsLaunchDate.toggle()
+                    }
+                } label: {
+                    content(from: context.date)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(showsLaunchDate ? "Launch date and time" : "Time until launch")
+                .accessibilityValue(displayedText(from: context.date))
+                .accessibilityHint(showsLaunchDate ? "Tap to show countdown" : "Tap to show launch date and time")
+            } else {
+                content(from: context.date)
+                    .accessibilityLabel("Time until launch")
+                    .accessibilityValue(countdown(from: context.date))
+            }
+        }
+    }
+
+    private func content(from now: Date) -> some View {
+        HStack(spacing: 8) {
+            if showsClock {
                 Image(systemName: "clock")
                     .font(.caption.weight(.semibold))
-
-                Text(countdown(from: context.date))
-                    .font(.subheadline.weight(.semibold))
-                    .monospacedDigit()
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
-            .background(.black.opacity(0.46), in: Capsule())
-            .foregroundStyle(.white)
-            .accessibilityLabel("Time until launch")
-            .accessibilityValue(countdown(from: context.date))
+
+            ZStack {
+                if showsLaunchDate {
+                    Text(launchDate)
+                        .transition(.opacity)
+                } else {
+                    Text(countdown(from: now))
+                        .monospacedDigit()
+                        .transition(.opacity)
+                }
+            }
+            .font(.subheadline.weight(.semibold))
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .contentShape(Capsule())
+        .modifier(LaunchCountdownBackground(style: style, isInteractive: allowsDateToggle))
+    }
+
+    private var launchDate: String {
+        date.formatted(date: .abbreviated, time: .shortened)
+    }
+
+    private func displayedText(from now: Date) -> String {
+        showsLaunchDate ? launchDate : countdown(from: now)
     }
 
     private func countdown(from now: Date) -> String {
@@ -370,12 +422,31 @@ private struct LaunchCountdown: View {
     }
 }
 
+private struct LaunchCountdownBackground: ViewModifier {
+    let style: LaunchCountdown.Style
+    let isInteractive: Bool
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        switch style {
+        case .dark:
+            content
+                .background(.black.opacity(0.46), in: Capsule())
+                .foregroundStyle(.white)
+        case .glass:
+            content
+                .foregroundStyle(.primary)
+                .glassEffect(.regular.interactive(isInteractive), in: .capsule)
+        }
+    }
+}
+
 private struct RocketLaunchDetailView: View {
     let launch: RocketLaunch
     let namespace: Namespace.ID
     @Environment(\.dismiss) private var dismiss
     @State private var presentedSheet: LaunchDetailSheetDestination? = .details
-    @State private var selectedDetent: PresentationDetent = .height(265)
+    @State private var selectedDetent: PresentationDetent = .height(280)
 
     private var isInspectingModel: Bool {
         selectedDetent == .height(80)
@@ -398,26 +469,37 @@ private struct RocketLaunchDetailView: View {
 
             VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .top, spacing: 14) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text(launch.mission)
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(launch.displayVehicle)
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
                             .tracking(-0.8)
                             .lineLimit(3)
 
-                        Text(launch.vehicle.uppercased())
-                            .font(.subheadline.weight(.bold))
-                            .tracking(2.2)
+                        Text(launch.provider)
+                            .font(.title3.weight(.semibold))
                             .foregroundStyle(.secondary)
+                            .padding(.top, 8)
 
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("PROVIDER")
-                                .font(.caption.weight(.semibold))
-                                .tracking(1.4)
-                                .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Intended orbit")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.secondary)
 
-                            Text(launch.provider)
-                                .font(.headline)
+                                Text(launch.orbit)
+                                    .font(.headline)
+                            }
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Status")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+
+                                Text(launch.status)
+                                    .font(.headline)
+                            }
                         }
+                        .padding(.top, 14)
                     }
                     .frame(maxWidth: 230, alignment: .leading)
                     .opacity(isInspectingModel ? 0 : 1)
@@ -427,7 +509,7 @@ private struct RocketLaunchDetailView: View {
                     Spacer(minLength: 0)
 
                     Button {
-                        dismiss()
+                        closeLaunchDetails()
                     } label: {
                         Image(systemName: "xmark")
                             .font(.body.weight(.semibold))
@@ -442,7 +524,12 @@ private struct RocketLaunchDetailView: View {
 
                 HStack {
                     Spacer()
-                    LaunchCountdown(date: launch.date)
+                    LaunchCountdown(
+                        date: launch.date,
+                        style: .glass,
+                        showsClock: false,
+                        allowsDateToggle: true
+                    )
                     Spacer()
                 }
                 .padding(.bottom, 286)
@@ -460,19 +547,149 @@ private struct RocketLaunchDetailView: View {
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .navigationTransition(.zoom(sourceID: launch.id, in: namespace))
+        .background {
+            NavigationBackSwipeDisabler()
+                .frame(width: 0, height: 0)
+        }
         .sheet(item: $presentedSheet) { _ in
             LaunchDetailSheet(
                 launch: launch,
                 isCompact: isInspectingModel
             )
                 .presentationDetents(
-                    [.height(80), .height(265), .large],
+                    [.height(80), .height(280), .large],
                     selection: $selectedDetent
                 )
                 .presentationDragIndicator(.visible)
-                .presentationBackgroundInteraction(.enabled(upThrough: .height(265)))
+                .presentationBackgroundInteraction(.enabled(upThrough: .height(280)))
                 .interactiveDismissDisabled()
         }
+    }
+
+    private func closeLaunchDetails() {
+        dismissSheetForNavigation()
+        dismiss()
+    }
+
+    private func dismissSheetForNavigation() {
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            selectedDetent = .height(80)
+            presentedSheet = nil
+        }
+    }
+
+}
+
+private struct NavigationBackSwipeDisabler: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> NavigationBackSwipeDisablerViewController {
+        NavigationBackSwipeDisablerViewController()
+    }
+
+    func updateUIViewController(
+        _ uiViewController: NavigationBackSwipeDisablerViewController,
+        context: Context
+    ) {
+        uiViewController.disableNavigationBackGestures()
+    }
+
+    static func dismantleUIViewController(
+        _ uiViewController: NavigationBackSwipeDisablerViewController,
+        coordinator: Void
+    ) {
+        uiViewController.restoreNavigationBackGestures()
+    }
+}
+
+@MainActor
+private final class NavigationBackSwipeDisablerViewController: UIViewController {
+    private var disabledGestureRecognizers: [UIGestureRecognizer] = []
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        disableNavigationBackGestures()
+    }
+
+    override func didMove(toParent parent: UIViewController?) {
+        super.didMove(toParent: parent)
+        if parent == nil {
+            restoreNavigationBackGestures()
+        } else {
+            disableNavigationBackGestures()
+        }
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        restoreNavigationBackGestures()
+        super.viewWillDisappear(animated)
+    }
+
+    func disableNavigationBackGestures() {
+        var viewController: UIViewController? = parent
+        var gestures: [UIGestureRecognizer] = []
+
+        while let current = viewController {
+            gestures.append(contentsOf: current.view.gestureRecognizers?.filter { gesture in
+                gesture is UIScreenEdgePanGestureRecognizer
+                    || gesture.name?.localizedCaseInsensitiveContains("InteractiveDismiss") == true
+            } ?? [])
+            viewController = current.parent
+        }
+
+        if let navigationController = resolvedNavigationController() {
+            gestures.append(contentsOf: [
+                navigationController.interactivePopGestureRecognizer,
+                navigationController.interactiveContentPopGestureRecognizer
+            ].compactMap { $0 })
+        }
+
+        for gesture in gestures where gesture.isEnabled
+            && !disabledGestureRecognizers.contains(where: { $0 === gesture }) {
+            gesture.isEnabled = false
+            disabledGestureRecognizers.append(gesture)
+        }
+    }
+
+    func restoreNavigationBackGestures() {
+        for gesture in disabledGestureRecognizers {
+            gesture.isEnabled = true
+        }
+        disabledGestureRecognizers.removeAll()
+    }
+
+    private func resolvedNavigationController() -> UINavigationController? {
+        if let navigationController {
+            return navigationController
+        }
+
+        var ancestor = parent
+        while let current = ancestor {
+            if let navigationController = current as? UINavigationController {
+                return navigationController
+            }
+            if let navigationController = current.navigationController {
+                return navigationController
+            }
+            ancestor = current.parent
+        }
+
+        return findNavigationController(in: viewIfLoaded?.window?.rootViewController)
+    }
+
+    private func findNavigationController(in root: UIViewController?) -> UINavigationController? {
+        guard let root else { return nil }
+        if let navigationController = root as? UINavigationController {
+            return navigationController
+        }
+
+        for child in root.children {
+            if let navigationController = findNavigationController(in: child) {
+                return navigationController
+            }
+        }
+
+        return nil
     }
 }
 
@@ -487,58 +704,115 @@ private struct LaunchDetailSheet: View {
     let isCompact: Bool
 
     var body: some View {
+        Group {
+            if isCompact {
+                compactContent
+                    .transition(.opacity)
+            } else {
+                expandedContent
+                    .transition(.opacity)
+            }
+        }
+        .tint(.primary)
+        .animation(.easeInOut(duration: 0.12), value: isCompact)
+    }
+
+    private var compactContent: some View {
+        Text(launch.displayVehicle)
+            .font(.title3.weight(.bold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .padding(.horizontal, 36)
+            .accessibilityAddTraits(.isHeader)
+    }
+
+    private var expandedContent: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 8) {
-                        Circle()
-                            .fill(launch.statusColor)
-                            .frame(width: 7, height: 7)
+                    sheetTitle
 
-                        Text(launch.status.uppercased())
-                            .font(.caption.weight(.bold))
-                            .tracking(1)
-                    }
+                    Text(launch.summary)
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .lineSpacing(5)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .textSelection(.enabled)
+                }
 
-                    Text(launch.launchWindow)
-                        .font(.title2.weight(.bold))
+                LaunchDetailGrid(launch: launch)
 
-                    if !isCompact {
-                        Text(launch.summary)
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                            .lineSpacing(5)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .textSelection(.enabled)
+                LaunchSiteMap(launch: launch)
+
+                if launch.imageURL != nil {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Mission image")
+                            .font(.headline)
+
+                        LaunchImage(url: launch.imageURL)
+                            .frame(height: 230)
+                            .frame(maxWidth: .infinity)
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                     }
                 }
 
-                if !isCompact {
-                    LaunchDetailGrid(launch: launch)
-
-                    LaunchSiteMap(launch: launch)
-
-                    if launch.imageURL != nil {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Mission image")
-                                .font(.headline)
-
-                            LaunchImage(url: launch.imageURL)
-                                .frame(height: 230)
-                                .frame(maxWidth: .infinity)
-                                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                        }
-                    }
-
-                    LivestreamSection(videoURL: launch.videoURL)
-                }
+                LivestreamSection(videoURL: launch.videoURL)
             }
             .padding(.horizontal, 20)
-            .padding(.top, 8)
+            .padding(.top, 20)
             .padding(.bottom, 44)
         }
         .scrollIndicators(.hidden)
-        .tint(.primary)
+    }
+
+    private var sheetTitle: some View {
+        let title = LaunchMissionTitle(launch.mission)
+
+        return VStack(spacing: 3) {
+            Text(title.title)
+                .font(.title2.weight(.bold))
+
+            if let subtitle = title.subtitle {
+                Text(subtitle)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+    }
+}
+
+private struct LaunchMissionTitle {
+    let title: String
+    let subtitle: String?
+
+    init(_ mission: String) {
+        var title = mission
+        var subtitleParts: [String] = []
+
+        while let range = title.range(of: #"\([^()]*\)"#, options: .regularExpression) {
+            subtitleParts.append(String(title[range]))
+            title.removeSubrange(range)
+        }
+
+        if title.range(of: "Starlink", options: .caseInsensitive) != nil,
+           let range = title.range(
+               of: #"\bGroup\s+[A-Za-z0-9]+(?:-[A-Za-z0-9]+)+\b"#,
+               options: [.regularExpression, .caseInsensitive]
+           ) {
+            subtitleParts.insert(String(title[range]), at: 0)
+            title.removeSubrange(range)
+        }
+
+        self.title = title
+            .replacingOccurrences(of: #"\s{2,}"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        self.subtitle = subtitleParts.isEmpty ? nil : subtitleParts.joined(separator: " · ")
     }
 }
 
@@ -551,9 +825,8 @@ private struct LaunchDetailGrid: View {
 
     var body: some View {
         LazyVGrid(columns: columns, alignment: .leading, spacing: 14) {
-            detail("Vehicle", launch.vehicle)
+            detail("Vehicle", launch.displayVehicle)
             detail("Provider", launch.provider)
-            detail("Window", launch.launchWindow)
             detail("Orbit", launch.orbit)
         }
         .padding(18)
@@ -625,9 +898,11 @@ private struct LivestreamSection: View {
             } else if let videoURL {
                 Link(destination: videoURL) {
                     Label("Open livestream", systemImage: "play.rectangle")
+                        .font(.subheadline.weight(.semibold))
                         .frame(maxWidth: .infinity)
+                        .foregroundStyle(.primary)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glass)
             } else {
                 ContentUnavailableView(
                     "No livestream yet",
@@ -797,6 +1072,17 @@ private struct RocketLaunch: Identifiable, Hashable {
     let latitude: Double?
     let longitude: Double?
 
+    var displayVehicle: String {
+        switch vehicle.lowercased() {
+        case "falcon 9 block 5":
+            "Falcon 9"
+        case "starship v3":
+            "Starship"
+        default:
+            vehicle
+        }
+    }
+
     var coordinate: CLLocationCoordinate2D? {
         guard let latitude, let longitude else { return nil }
         return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
@@ -891,11 +1177,12 @@ private struct LaunchLibraryClient {
             return cachedPage
         }
 
-        var components = URLComponents(string: "https://ll.thespacedevs.com/2.3.0/launches/upcoming/")!
+        var components = URLComponents(
+            url: OvertureEnvironment.apiBaseURL.appending(path: "api/launches/upcoming"),
+            resolvingAgainstBaseURL: false
+        )!
         components.queryItems = [
             URLQueryItem(name: "limit", value: String(Self.pageSize)),
-            URLQueryItem(name: "mode", value: "detailed"),
-            URLQueryItem(name: "format", value: "json"),
         ]
         if offset > 0 {
             components.queryItems?.append(URLQueryItem(name: "offset", value: String(offset)))
@@ -1133,6 +1420,7 @@ private struct LaunchVideo: Decodable {
     let featureImage: URL?
     let url: URL?
     let live: Bool?
+    let type: LaunchVideoType?
 
     enum CodingKeys: String, CodingKey {
         case priority
@@ -1140,7 +1428,21 @@ private struct LaunchVideo: Decodable {
         case featureImage = "feature_image"
         case url
         case live
+        case type
     }
+
+    var isOfficial: Bool {
+        guard let typeName = type?.name
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased() else {
+            return false
+        }
+        return typeName == "official" || typeName.hasPrefix("official ")
+    }
+}
+
+private struct LaunchVideoType: Decodable {
+    let name: String
 }
 
 private extension RocketLaunch {
@@ -1148,7 +1450,16 @@ private extension RocketLaunch {
         let launchDate = response.net ?? Date()
         let missionName = response.mission?.name ?? response.name
         let preferredVideo = response.vidURLs?
-            .sorted { ($0.priority ?? Int.max) < ($1.priority ?? Int.max) }
+            .filter { $0.url != nil }
+            .sorted { lhs, rhs in
+                if lhs.isOfficial != rhs.isOfficial {
+                    return lhs.isOfficial
+                }
+                if (lhs.live == true) != (rhs.live == true) {
+                    return lhs.live == true
+                }
+                return (lhs.priority ?? Int.max) < (rhs.priority ?? Int.max)
+            }
             .first
 
         self.init(

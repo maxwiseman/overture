@@ -9,6 +9,9 @@ struct Story: Identifiable, Hashable {
     let category: String
     let imageName: String
     let imageURL: URL?
+    let mobileImageURL: URL?
+    let imageAlt: String?
+    let imageCredit: String?
     let byline: String
     let publishedAt: Date?
     let sections: [ArticleSection]
@@ -22,6 +25,9 @@ struct Story: Identifiable, Hashable {
         category: String,
         imageName: String,
         imageURL: URL? = nil,
+        mobileImageURL: URL? = nil,
+        imageAlt: String? = nil,
+        imageCredit: String? = nil,
         byline: String = "Mara Bell",
         publishedAt: Date? = nil,
         sections: [ArticleSection] = []
@@ -34,6 +40,9 @@ struct Story: Identifiable, Hashable {
         self.category = category
         self.imageName = imageName
         self.imageURL = imageURL
+        self.mobileImageURL = mobileImageURL
+        self.imageAlt = imageAlt
+        self.imageCredit = imageCredit
         self.byline = byline
         self.publishedAt = publishedAt
         self.sections = sections
@@ -107,6 +116,7 @@ enum ReadingDepth: Int, CaseIterable, Identifiable, Comparable {
 
 struct ArticleSection: Identifiable, Hashable {
     let id: String
+    var image: ArticleImage? = nil
     let heading: String?
     let glance: String
     let brief: String
@@ -121,6 +131,13 @@ struct ArticleSection: Identifiable, Hashable {
         case .full: full
         }
     }
+}
+
+struct ArticleImage: Hashable {
+    let url: URL
+    let alt: String?
+    let caption: String?
+    let credit: String?
 }
 
 struct ArticleContent {

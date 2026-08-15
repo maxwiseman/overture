@@ -6,12 +6,17 @@ import type { Article, Media } from "@/cms/payload-types";
 
 export type PublicationSection = {
   id: string;
+  kind: "text" | "image";
   heading: string | null;
   body: string;
   glance: string;
   brief: string;
   standard: string;
   full: string;
+  imageURL: string | null;
+  imageAlt: string | null;
+  imageCaption: string | null;
+  imageCredit: string | null;
 };
 
 export type PublicationStory = {
@@ -24,6 +29,9 @@ export type PublicationStory = {
   readTimeMinutes: number;
   publishedAt: string | null;
   heroImageURL: string | null;
+  heroImageMobileURL: string | null;
+  heroImageAlt: string | null;
+  heroImageCredit: string | null;
   sections: PublicationSection[];
 };
 
@@ -52,9 +60,10 @@ const localStoryImages: Record<string, { landscape: string; portrait: string }> 
 };
 
 export function storyImage(
-  story: Pick<PublicationStory, "slug" | "heroImageURL">,
+  story: Pick<PublicationStory, "slug" | "heroImageURL" | "heroImageMobileURL">,
   orientation: "landscape" | "portrait" = "landscape",
 ) {
+  if (orientation === "portrait" && story.heroImageMobileURL) return story.heroImageMobileURL;
   return story.heroImageURL ?? localStoryImages[story.slug]?.[orientation] ?? null;
 }
 
@@ -96,12 +105,17 @@ function normalizeSections(
     const id = block.id ?? `section-${index + 1}`;
     const withVariants = (heading: string | null, full: string): PublicationSection => ({
       id,
+      kind: "text",
       heading,
       body: full,
       glance: variantMaps.glance.get(id)?.body ?? full,
       brief: variantMaps.brief.get(id)?.body ?? full,
       standard: variantMaps.standard.get(id)?.body ?? full,
       full,
+      imageURL: null,
+      imageAlt: null,
+      imageCaption: null,
+      imageCredit: null,
     });
 
     if (block.blockType === "richText") {
@@ -114,6 +128,25 @@ function normalizeSections(
       return [withVariants("In their words", `“${block.quote}”${attribution}`)];
     }
 
+    if (block.blockType === "image" && typeof block.image === "object" && block.image !== null) {
+      const image = block.image;
+      const imagePath = image.sizes?.article?.url ?? image.url;
+      return [{
+        id,
+        kind: "image",
+        heading: null,
+        body: "",
+        glance: "",
+        brief: "",
+        standard: "",
+        full: "",
+        imageURL: absoluteMediaURL(imagePath),
+        imageAlt: image.alt,
+        imageCaption: block.caption ?? image.caption ?? null,
+        imageCredit: block.credit ?? image.credit ?? null,
+      }];
+    }
+
     return [];
   });
 }
@@ -121,7 +154,12 @@ function normalizeSections(
 function normalizeArticle(article: Article): PublicationStory {
   const media: Media | null =
     typeof article.heroImage === "object" && article.heroImage !== null ? article.heroImage : null;
-  const mediaPath = media?.sizes?.article?.url ?? media?.url;
+  const mediaPath = media?.sizes?.heroDesktop?.url ?? media?.sizes?.article?.url ?? media?.url;
+  const mobileMedia: Media | null =
+    typeof article.heroImageMobile === "object" && article.heroImageMobile !== null
+      ? article.heroImageMobile
+      : null;
+  const mobileMediaPath = mobileMedia?.sizes?.heroMobile?.url ?? mobileMedia?.url;
 
   return {
     id: String(article.id),
@@ -133,6 +171,9 @@ function normalizeArticle(article: Article): PublicationStory {
     readTimeMinutes: article.estimatedReadingMinutes ?? 5,
     publishedAt: article.publishedAt ?? null,
     heroImageURL: absoluteMediaURL(mediaPath),
+    heroImageMobileURL: absoluteMediaURL(mobileMediaPath),
+    heroImageAlt: media?.alt ?? null,
+    heroImageCredit: media?.credit ?? null,
     sections: normalizeSections(article.body, article.variants),
   };
 }
