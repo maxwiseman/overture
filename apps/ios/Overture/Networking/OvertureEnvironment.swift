@@ -2,12 +2,7 @@ import Foundation
 
 enum OvertureEnvironment {
     static let websiteBaseURL = URL(string: "https://maxw.news")!
-
-    #if targetEnvironment(simulator)
-    static let apiBaseURL = URL(string: "http://localhost:3001")!
-    #else
     static let apiBaseURL = websiteBaseURL
-    #endif
 
     static func articleURL(slug: String) -> URL {
         websiteBaseURL

@@ -300,7 +300,7 @@ private struct LaunchCard: View {
 
                 Spacer(minLength: 34)
 
-                Text(launch.date.formatted(.dateTime.weekday(.wide).month(.wide).day()))
+                Text(launch.dateDisplayText)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
 
@@ -320,7 +320,9 @@ private struct LaunchCard: View {
 
                 Spacer(minLength: 22)
 
-                LaunchCountdown(date: launch.date)
+                if launch.showsCountdown {
+                    LaunchCountdown(date: launch.date)
+                }
             }
             .foregroundStyle(.primary)
             .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : 238, alignment: .leading)
@@ -333,6 +335,20 @@ private struct LaunchCard: View {
         .contentShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(isNext ? "Next launch" : "Upcoming launch"), \(launch.mission), \(launch.launchWindow), \(launch.site)")
+    }
+}
+
+private struct LaunchDateLabel: View {
+    let text: String
+    var style: LaunchCountdown.Style = .dark
+
+    var body: some View {
+        Text(text)
+            .font(.subheadline.weight(.semibold))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .modifier(LaunchCountdownBackground(style: style, isInteractive: false))
+        .accessibilityLabel(text)
     }
 }
 
@@ -524,12 +540,19 @@ private struct RocketLaunchDetailView: View {
 
                 HStack {
                     Spacer()
-                    LaunchCountdown(
-                        date: launch.date,
-                        style: .glass,
-                        showsClock: false,
-                        allowsDateToggle: true
-                    )
+                    if launch.showsCountdown {
+                        LaunchCountdown(
+                            date: launch.date,
+                            style: .glass,
+                            showsClock: false,
+                            allowsDateToggle: true
+                        )
+                    } else {
+                        LaunchDateLabel(
+                            text: launch.dateDisplayText,
+                            style: .glass
+                        )
+                    }
                     Spacer()
                 }
                 .padding(.bottom, 286)
@@ -1060,6 +1083,7 @@ private struct RocketLaunch: Identifiable, Hashable {
     let spacecraft: String?
     let provider: String
     let date: Date
+    let datePrecision: String?
     let launchWindow: String
     let site: String
     let month: String
@@ -1086,6 +1110,64 @@ private struct RocketLaunch: Identifiable, Hashable {
     var coordinate: CLLocationCoordinate2D? {
         guard let latitude, let longitude else { return nil }
         return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+
+    var dateDisplayText: String {
+        Self.displayText(for: date, precision: datePrecision)
+    }
+
+    private static func displayText(for date: Date, precision: String?) -> String {
+        let normalizedPrecision = precision?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+
+        guard let normalizedPrecision else {
+            return fullDayFormatter.string(from: date)
+        }
+
+        let year = utcCalendar.component(.year, from: date)
+
+        switch normalizedPrecision {
+        case "second", "minute", "hour":
+            return fullDayFormatter.string(from: date)
+        case "day":
+            return dayOnlyFormatter.string(from: date)
+        case "week":
+            return "Week of \(dayOnlyFormatter.string(from: date))"
+        case "month":
+            return monthYearFormatter.string(from: date)
+        case let precision where precision.hasPrefix("quarter "):
+            return "Q\(precision.suffix(1)) \(year)"
+        case "year half 1":
+            return "Early \(year)"
+        case "year half 2":
+            return "Late \(year)"
+        case "year":
+            return String(year)
+        case "fiscal year":
+            return "FY \(year)"
+        case "decade":
+            return "\((year / 10) * 10)s"
+        default:
+            return fullDayFormatter.string(from: date)
+        }
+    }
+
+    var showsCountdown: Bool {
+        guard !isDateTBD else { return false }
+        guard let normalizedPrecision else { return true }
+        return ["second", "minute", "hour"].contains(normalizedPrecision)
+    }
+
+    private var isDateTBD: Bool {
+        let normalizedStatus = status.lowercased()
+        return normalizedStatus.contains("tbd") || normalizedStatus.contains("to be determined")
+    }
+
+    private var normalizedPrecision: String? {
+        datePrecision?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
     }
 
     var isTerminal: Bool {
@@ -1120,6 +1202,7 @@ private struct RocketLaunch: Identifiable, Hashable {
             spacecraft: nil,
             provider: "NASA",
             date: firstDate,
+            datePrecision: nil,
             launchWindow: Self.windowFormatter.string(from: firstDate),
             site: "Kennedy LC-39B",
             month: "SEP",
@@ -1140,6 +1223,7 @@ private struct RocketLaunch: Identifiable, Hashable {
             spacecraft: nil,
             provider: "SpaceX",
             date: secondDate,
+            datePrecision: nil,
             launchWindow: Self.windowFormatter.string(from: secondDate),
             site: "Starbase",
             month: "SEP",
@@ -1317,6 +1401,7 @@ private struct LaunchLibraryLaunch: Decodable {
     let name: String
     let status: LaunchStatus?
     let net: Date?
+    let netPrecision: LaunchNetPrecision?
     let image: LaunchImageResource?
     let launchServiceProvider: LaunchProvider?
     let rocket: LaunchRocket?
@@ -1329,6 +1414,7 @@ private struct LaunchLibraryLaunch: Decodable {
         case name
         case status
         case net
+        case netPrecision = "net_precision"
         case image
         case launchServiceProvider = "launch_service_provider"
         case rocket
@@ -1336,6 +1422,10 @@ private struct LaunchLibraryLaunch: Decodable {
         case pad
         case vidURLs = "vid_urls"
     }
+}
+
+private struct LaunchNetPrecision: Decodable {
+    let name: String
 }
 
 private struct LaunchStatus: Decodable {
@@ -1472,7 +1562,8 @@ private extension RocketLaunch {
                 .first,
             provider: response.launchServiceProvider?.name ?? "Launch provider",
             date: launchDate,
-            launchWindow: Self.windowFormatter.string(from: launchDate),
+            datePrecision: response.netPrecision?.name,
+            launchWindow: Self.displayText(for: launchDate, precision: response.netPrecision?.name),
             site: [response.pad?.name, response.pad?.location?.name]
                 .compactMap { $0 }
                 .joined(separator: " · "),
@@ -1497,6 +1588,32 @@ private extension RocketLaunch {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
+        return formatter
+    }()
+
+    private static let utcCalendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        return calendar
+    }()
+
+    private static let fullDayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMMM d, yyyy"
+        return formatter
+    }()
+
+    private static let dayOnlyFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM d, yyyy"
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return formatter
+    }()
+
+    private static let monthYearFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
         return formatter
     }()
 
