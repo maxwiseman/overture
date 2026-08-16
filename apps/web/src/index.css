@@ -1,1 +1,26 @@
 @import "@overture/ui/globals.css";
+
+:root {
+  --background: #f4f2ec;
+  --foreground: #10100f;
+  --publication-muted: #62615c;
+  --publication-border: #cbc8c0;
+  --publication-placeholder: #d9d7d0;
+  --publication-accent: #2d6bd1;
+}
+
+.dark {
+  --background: #111310;
+  --foreground: #f2f0e9;
+  --publication-muted: #aaa79f;
+  --publication-border: #383934;
+  --publication-placeholder: #242620;
+  --publication-accent: #77a7ff;
+}
+
+@theme inline {
+  --color-publication-muted: var(--publication-muted);
+  --color-publication-border: var(--publication-border);
+  --color-publication-placeholder: var(--publication-placeholder);
+  --color-publication-accent: var(--publication-accent);
+}

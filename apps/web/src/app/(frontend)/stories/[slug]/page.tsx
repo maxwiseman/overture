@@ -83,7 +83,7 @@ async function StoryContent({ params }: StoryPageProps) {
         ) : null}
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgb(2_7_14_/_0.86),rgb(2_7_14_/_0.28)_65%,transparent)]" />
         <div className="relative z-2 mx-auto flex min-h-[738px] max-w-[1440px] flex-col items-start justify-end px-[42px] pt-[150px] pb-[70px] max-[800px]:min-h-svh max-[800px]:px-5 max-[800px]:pb-12">
-          <p className="mb-3 text-[0.72rem] font-[650] tracking-[0.17em] text-[#2d6bd1] uppercase">
+          <p className="mb-3 text-[0.72rem] font-[650] tracking-[0.17em] text-[#77a7ff] uppercase">
             {story.category}
           </p>
           <h1 className="m-0 max-w-[760px] [font-family:Georgia,'Times_New_Roman',serif] text-[clamp(4rem,7vw,7rem)] leading-[0.95] font-normal tracking-[-0.055em] max-[800px]:text-[clamp(3.5rem,16vw,5rem)]">
@@ -103,8 +103,8 @@ async function StoryContent({ params }: StoryPageProps) {
           </p>
         ) : null}
       </header>
-      <article className="mx-auto max-w-[740px] px-8 pt-[76px] pb-[130px] [&_section+section]:mt-[42px] [&_section_h2]:[font-family:Georgia,'Times_New_Roman',serif] [&_section_h2]:text-[2.2rem] [&_section_h2]:font-normal [&_section_p]:m-0 [&_section_p]:[font-family:Georgia,'Times_New_Roman',serif] [&_section_p]:text-[clamp(1.35rem,2vw,1.65rem)] [&_section_p]:leading-[1.65] [&_section_p]:text-[#22211f]">
-        <Link className="mb-[68px] flex items-center gap-2 text-[0.88rem] text-[#2d6bd1]" href="/">
+      <article className="mx-auto max-w-[740px] px-8 pt-[76px] pb-[130px] [&_section+section]:mt-[42px] [&_section_h2]:[font-family:Georgia,'Times_New_Roman',serif] [&_section_h2]:text-[2.2rem] [&_section_h2]:font-normal [&_section_p]:m-0 [&_section_p]:[font-family:Georgia,'Times_New_Roman',serif] [&_section_p]:text-[clamp(1.35rem,2vw,1.65rem)] [&_section_p]:leading-[1.65] [&_section_p]:text-foreground">
+        <Link className="mb-[68px] flex items-center gap-2 text-[0.88rem] text-publication-accent" href="/">
           <ArrowLeft size={18} /> Today’s issue
         </Link>
         {story.sections.map((section) =>
@@ -120,7 +120,7 @@ async function StoryContent({ params }: StoryPageProps) {
                 unoptimized
               />
               {section.imageCaption || section.imageCredit ? (
-                <figcaption className="mt-3 px-2 text-[0.78rem] leading-relaxed text-[#6b6862]">
+                <figcaption className="mt-3 px-2 text-[0.78rem] leading-relaxed text-publication-muted">
                   {[section.imageCaption, section.imageCredit].filter(Boolean).join(" · ")}
                 </figcaption>
               ) : null}

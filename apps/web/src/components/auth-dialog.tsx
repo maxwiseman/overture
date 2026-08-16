@@ -63,17 +63,17 @@ export default function AuthDialog() {
       >
         <IconUser aria-hidden="true" size={20} stroke={1.8} />
       </DialogTrigger>
-      <DialogContent className="max-w-[calc(100%-2.5rem)] gap-0 bg-[#f4f2ec] px-7 pt-12 pb-7 text-[#10100f] sm:max-w-[390px] sm:px-9 sm:pt-14 sm:pb-9">
+      <DialogContent className="max-w-[calc(100%-2.5rem)] gap-0 bg-background px-7 pt-12 pb-7 text-foreground sm:max-w-[390px] sm:px-9 sm:pt-14 sm:pb-9">
         <DialogHeader className="gap-3 text-center">
           <DialogTitle className="[font-family:Georgia,'Times_New_Roman',serif] text-[2.15rem] leading-none font-normal tracking-[-0.045em]">
             Welcome to Overture
           </DialogTitle>
-          <DialogDescription className="text-sm leading-6 text-[#62615c]">
+          <DialogDescription className="text-sm leading-6 text-publication-muted">
             Sign in with your Apple Account to continue.
           </DialogDescription>
         </DialogHeader>
         <Button
-          className="mt-8 h-12 w-full gap-2.5 rounded-[8px] bg-black text-[0.95rem] font-medium text-white hover:bg-black/82"
+          className="mt-8 h-12 w-full gap-2.5 rounded-[8px] bg-foreground text-[0.95rem] font-medium text-background hover:bg-foreground/82"
           type="button"
           onClick={signInWithApple}
           disabled={isSigningIn}

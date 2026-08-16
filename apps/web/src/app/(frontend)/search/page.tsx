@@ -14,7 +14,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
 
   if (!edition || edition.stories.length === 0) {
     return (
-      <main className="grid min-h-svh place-items-center bg-[#f4f2ec] p-10 pt-22 text-[#10100f]">
+      <main className="grid min-h-svh place-items-center bg-background p-10 pt-22 text-foreground">
         <h1 className="font-[Georgia,'Times_New_Roman',serif] font-normal text-5xl">
           The next issue is being prepared.
         </h1>
@@ -23,7 +23,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
   }
 
   return (
-    <main className="min-h-svh bg-[#f4f2ec] pt-22">
+    <main className="min-h-svh bg-background pt-22">
       <Suspense fallback={<StoriesSection edition={edition} query="" />}>
         <SearchResults edition={edition} searchParams={searchParams} />
       </Suspense>

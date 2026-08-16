@@ -3,6 +3,7 @@ import { Search, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { ModeToggle } from "./mode-toggle";
 import { ProgressiveBlur } from "./progressive-blur";
 import UserMenu from "./user-menu";
 
@@ -39,7 +40,8 @@ export default function Header() {
             <span>Search</span>
           </button>
         </nav>
-        <div className="justify-self-end">
+        <div className="flex items-center justify-self-end gap-2">
+          <ModeToggle />
           <UserMenu />
         </div>
       </div>

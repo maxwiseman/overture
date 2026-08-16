@@ -19,15 +19,15 @@ export default function Dashboard({ stories }: { stories: PublicationStory[] }) 
   const savedStories = stories.filter((story) => savedSlugs.includes(story.slug));
 
   if (savedStories.length === 0) {
-    return <p className="mt-[22px] border-t border-[#cbc8c0] pt-[54px] text-[#62615c]">Stories you bookmark will appear here.</p>;
+    return <p className="mt-[22px] border-publication-border border-t pt-[54px] text-publication-muted">Stories you bookmark will appear here.</p>;
   }
 
   return (
-    <div className="mt-[54px] border-t border-[#cbc8c0]">
+    <div className="mt-[54px] border-publication-border border-t">
       {savedStories.map((story) => (
-        <article className="flex justify-between gap-6 border-b border-[#cbc8c0] py-7" key={story.id}>
+        <article className="flex justify-between gap-6 border-publication-border border-b py-7" key={story.id}>
           <div>
-            <p className="mb-2 text-[0.72rem] tracking-[0.12em] text-[#2d6bd1] uppercase">{story.category} · {story.readTimeMinutes} min read</p>
+            <p className="mb-2 text-[0.72rem] tracking-[0.12em] text-publication-accent uppercase">{story.category} · {story.readTimeMinutes} min read</p>
             <h2 className="m-0 [font-family:Georgia,'Times_New_Roman',serif] text-[2rem] font-normal"><Link href={`/stories/${story.slug}` as Route}>{story.title}</Link></h2>
           </div>
           <div className="self-center [&_button]:cursor-pointer [&_button]:border-0 [&_button]:bg-transparent [&_button]:p-2.5">
